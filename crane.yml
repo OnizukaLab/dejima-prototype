@@ -1,17 +1,25 @@
 prefix: "dejima-"
 services:
+  memcached:
+    image: "memcached"
+    networks: ["net"]
+    interactive: true
+    tty: true
   gov-client:
     image: "dfherr/dejima-prototype:latest"
     requires:
       - "gov-postgres"
+      - "memcached"
     networks: ["net", "gov-client-net"]
     env:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=government"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-gov-postgres.dejima-gov-client-net"
+      - "MEMCACHE_HOST=memcached"
     #detach: true
     interactive: true
     tty: true
+    publish: ["3001:3000"]
     volume: ["peer:/peer"]
   gov-peer:
     image: "dfherr/dejima-prototype:latest"
@@ -43,11 +51,13 @@ services:
     image: "dfherr/dejima-prototype:latest"
     requires:
       - "bank-postgres"
+      - "memcached"
     networks: ["net", "bank-client-net"]
     env:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=bank"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-bank-postgres.dejima-bank-client-net"
+      - "MEMCACHE_HOST=memcached"
     #detach: true
     interactive: true
     tty: true
@@ -84,11 +94,13 @@ services:
     image: "dfherr/dejima-prototype:latest"
     requires:
       - "insurance-postgres"
+      - "memcached"
     networks: ["net", "insurance-client-net"]
     env:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=insurance"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-insurance-postgres.dejima-insurance-client-net"
+      - "MEMCACHE_HOST=memcached"
     #detach: true
     interactive: true
     tty: true
