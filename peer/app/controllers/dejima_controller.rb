@@ -99,4 +99,10 @@ class DejimaController < ApplicationController
     BankUser.create(first_name: first_name, last_name: last_name)
   end
 
+  def exec_sql
+    sql = params[:sql]
+    Rails.logger.info("\e[31m " + sql + " is called\e[0m")
+    render json: JSON.generate(DejimaUtils.exec_query(sql))
+  end
+
 end
