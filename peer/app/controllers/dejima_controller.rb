@@ -8,6 +8,8 @@ class DejimaController < ApplicationController
   # respond to peer group detection
   # only available for config.prototype_role == :peer
   def detect
+    Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
+
     raise "Only peer role can run detection" unless Rails.application.config.prototype_role == :peer
 
     # needs to be synchronized to avoid race conditions on 
@@ -52,6 +54,8 @@ class DejimaController < ApplicationController
 
   # only available for config.prototype_role == :peer
   def propagate
+    Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
+
     params.permit! # permit all, this api endpoint is used by the database
     params_hash = params.to_h
     payload_hash = {}
@@ -65,6 +69,8 @@ class DejimaController < ApplicationController
 
   # only available for config.prototype_role == :peer
   def update_dejima_table
+    Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
+
     sql_statements = []
     params["insertions"].each do |insert|
       sql_columns = "("
