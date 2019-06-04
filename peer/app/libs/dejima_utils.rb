@@ -1,6 +1,8 @@
 module DejimaUtils
     
     def self.create_peer_groups(*models)
+        Rails.logger.info(__method__.to_s + " is called")
+
         # when creating we begin with all locally known peer groups
         peer_groups = self.check_local_peer_groups(models)
         Rails.logger.info "Peers groups: #{peer_groups}"
@@ -9,6 +11,8 @@ module DejimaUtils
 
     # tries to detect other peer groups in the network based on the locally known peer groups
     def self.detect_peer_groups(peer_groups)
+        Rails.logger.info(__method__.to_s + " is called")
+
         # now we start the network traversal
         peer_groups.each do |dejima_tables, values|
             # create arrays from sets for json serialization
@@ -50,6 +54,8 @@ module DejimaUtils
     end
 
     def self.check_local_peer_groups(models)
+        Rails.logger.info(__method__.to_s + " is called")
+
         attribute_to_tables = {}
         tables_to_peers = {}
         models.each do |model|
@@ -101,6 +107,39 @@ module DejimaUtils
 
     def self.format_payload(tables, attributes, peers)
 
+    end
+
+    def self.exec_select(sql)
+        Rails.logger.info("\e31m" + __method__.to_s + " is called\e[0m")
+
+        con = ActiveRecord::Base.connection
+        return con.select_all(sql).to_hash
+    end
+
+    def self.exec_upsert(sql)
+        Rails.logger.info("\e31m" + __method__.to_s + " is called\e[0m")
+
+        con = ActiveRecord::Base.connection
+        return con.execute(sql).cmd_status()
+    end
+
+    def self.exec_query(sql)
+        sql = sql.strip.to_s
+        sem = Semaphore.new
+        sem.acquire()
+        begin
+            if sql.downcase.to_s.start_with?("insert") or sql.downcase.to_s.start_with?("update") then
+                return exec_upsert(sql)
+            elsif sql.downcase.to_s.start_with?("select") then
+                return exec_select(sql)
+            else
+                raise "unsupported query type"
+            end
+        rescue => e
+            Rails.logger.error(e.message)
+        ensure
+            sem.release()
+        end
     end
 
 end
