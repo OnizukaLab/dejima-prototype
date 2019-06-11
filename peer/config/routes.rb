@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     end
     if Rails.application.config.prototype_role == :client
       get 'create_user', to: 'dejima#create_user', controller: 'dejima'
+      get 'exec_sql', to: 'dejima#exec_sql', controller: 'dejima'
     end
   end
   
