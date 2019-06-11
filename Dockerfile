@@ -1,35 +1,38 @@
-FROM ruby:2.6.1-alpine as ruby_builder
-MAINTAINER Dennis-Florian Herr <herrdeflo@gmail.com>
-RUN apk add --update --no-cache \
+FROM ruby:2.6.1 as ruby_builder
+MAINTAINER Yusuke-Wakuta (inherits from Dennis-Florian Herr <herrdeflo@gmail.com>)
+
+RUN apt-get update
+RUN apt-get install -y \
     ca-certificates \
     openssl \
     g++ \
-    gcc \
+    build-essential \
     libc-dev \
     make \
     patch \
-    postgresql-dev \
-  && rm -rf /var/cache/apk/*
+    postgresql \
+    ruby-dev
 
 ADD peer/Gemfile /peer/Gemfile
 ADD peer/Gemfile.lock /peer/Gemfile.lock
 
 WORKDIR /peer
 
-RUN bundle install \
-  && rm /usr/local/bundle/cache/*
+RUN bundle install 
 
-FROM ruby:2.6.1-alpine
-RUN apk add --update --no-cache \
-     ca-certificates \
-     openssl \
-     libstdc++ \
-     postgresql-dev \
-     tzdata \
-     less \
-     bash \
-     curl \
-  && rm -rf /var/cache/apk/*
+FROM ruby:2.6.1
+
+RUN apt-get update
+RUN apt-get install -y \
+    ca-certificates \
+    openssl \
+    g++ \
+    build-essential \
+    libc-dev \
+    make \
+    patch \
+    postgresql \
+    ruby-dev
 
 ENV TZ Europe/Berlin
 
