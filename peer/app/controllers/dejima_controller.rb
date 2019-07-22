@@ -21,7 +21,7 @@ class DejimaController < ApplicationController
       Rails.logger.info "Responding to detection request"
       dejima_tables = Set.new(params["dejima_tables"])
       peers = Set.new(params["peers"])
-      bases = DejimaUtils.identify_bases(dejima_tables)
+      bases = DejimaUtils.identify_bases(dejima_tables) # get whoami by config, **param: dejima_tables is not used inside**
       local_peer_groups = DejimaUtils.check_local_peer_groups(bases)
       respond = [] # response is used by rails :)  
       local_peer_groups.each do |tables, values|
@@ -30,9 +30,9 @@ class DejimaController < ApplicationController
         # in the second case there exist more peers needing the data than the requester knew about
         if tables.proper_superset?(dejima_tables) || !values[:peers].subtract(peers).empty?
           payload = {}
-          payload[:dejima_tables] = tables.to_a
-          payload[:attributes] = values[:attributes].to_a
-          payload[:peers] = values[:peers].to_a
+          payload[:dejima_tables] = tables.to_a # e.g. ShareWithBank
+          payload[:attributes] = values[:attributes].to_a # e.g. first_name, last_name, phone, address
+          payload[:peers] = values[:peers].to_a # e.g. dejima-bank-peer.dejima-net, dejima-gov-peer.dejima-net
           respond << payload
         end
       end

@@ -3,8 +3,10 @@ require 'rest-client'
 
 module DejimaProxy
 
+    # call detect method for given peers
     def self.send_peer_group_request(peers, payload)
         Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
+
 
         Rails.logger.info("Sending peer group request.\n Peers: #{peers}\n Payload: #{payload}")
         responses = {}
@@ -31,7 +33,8 @@ module DejimaProxy
 
     def self.send_update_dejima_table(payload)
         Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
-        peers = ["dejima-gov-peer.dejima-net"]
+
+        peers = ["dejima-gov-peer.dejima-net"] #TODO yusuke ここで、決め打ちでgov-peer に飛ばしているが、これは動的に取得しないと行けないのでは？
         Rails.logger.info("Sending updates for remote dejima tables.\n Peers: #{peers}\n Payload: #{payload}")
         responses = {}
         peers.each do |peer|

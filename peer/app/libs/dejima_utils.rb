@@ -32,6 +32,7 @@ module DejimaUtils
                 peer_groups[dejima_tables][:visited] << peer
                 next if response == "ok" || response == "connection_error"
                 # response contains all the entries that signal peer_group_updates
+                # Here, processing is performed when it is determined by the detect that the update processing is necessary.
                 response.each do |peer_group_update|
                     # TODO:
                 end
@@ -53,6 +54,7 @@ module DejimaUtils
         # broadcast...
     end
 
+    # return peer groups by given models (user e.g. GovernmentUser])
     def self.check_local_peer_groups(models)
         Rails.logger.info(__method__.to_s + " is called")
 
@@ -80,6 +82,9 @@ module DejimaUtils
         #   phone: [ShareWithBank],
         #   birthdate: [ShareWithInsurance]
         # }
+
+        # tables_to_peers example:
+        # {ShareWithBank => {"dejima-bank-peer.dejima-net", "dejima-gov-peer.dejima-net"}}
         peer_groups = {}
         attribute_to_tables.each_pair do |attribute, tables|
             peer_groups[tables] = { attributes: Set.new, peers: Set.new } unless peer_groups[tables]
@@ -89,10 +94,18 @@ module DejimaUtils
             end
             peer_groups[tables][:visited] = Set.new([Rails.application.config.peer_network_address])
         end
+
+        # example of peer_groups
+        # {
+        # ShareWithBank =>
+        #   :attributes => {:first_name, :last_name, :phone, : address},
+        #   :peers => {"dejima-bank-peer.dejima-net", "dejima-gov-peer.dejima-net"},
+        #   :visited => {"dejima-bank-peer.dejima-net"}
+        # }
         peer_groups
     end
 
-    # hardcode for now
+    # TODO hardcode for now
     def self.identify_bases(values)
         if Rails.application.config.dejima_peer_type == :government
             return [GovernmentUser]
