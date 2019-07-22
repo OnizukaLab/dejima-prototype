@@ -1,0 +1,46 @@
+AllCops:
+  TargetRubyVersion: 2.6
+  CacheRootDirectory: "tmp"
+  DisplayStyleGuide: true
+  Exclude:
+    - bin/*
+    - test/**/*
+    - db/schema.rb
+    - db/**/*
+    - misc/**/*
+    - config.ru
+    - vendor/**/*
+    - config/spring.rb
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/BlockLength:
+  CountComments: false  # count full line comments?
+  Max: 25
+  Exclude: ["app/libs/peer_groups.rb"]
+Metrics/MethodLength:
+  CountComments: false
+  Max: 25
+  ExcludedMethods: ["add_new_peer_group"]
+
+Style/BlockDelimiters:
+  Exclude:
+    - 'spec/**/*'
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Style/ExpandPathArguments:
+  Enabled: false
+Style/MixinUsage:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Style/NumericPredicate:
+  Enabled: false
+Metrics/AbcSize:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false

@@ -2,58 +2,49 @@ require 'set'
 require 'rest-client'
 
 module DejimaProxy
-
-    # call detect method for given peers
-    def self.send_peer_group_request(peers, payload)
-        Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
-
-
-        Rails.logger.info("Sending peer group request.\n Peers: #{peers}\n Payload: #{payload}")
-        responses = {}
-        peers.each do |peer|
-            begin
-                RestClient::Request.execute(method: :get, url: "#{peer}:3000/hello",
-                    timeout: 5) # quick check for unresponsive peer
-                response = RestClient.post("#{peer}:3000/dejima/detect", payload)
-                Rails.logger.info "Peer #{peer} responded: #{response}"
-                responses[peer] = JSON.parse response.body
-            rescue RestClient::ExceptionWithResponse => e
-                Rails.logger.warn "RestClient error for peer #{peer}: #{e}"
-                responses[peer] = "connection_error"
-            rescue SocketError => e
-                Rails.logger.warn "Couldn't open socket to peer #{peer}: #{e}"
-                responses[peer] = "connection_error"
-            rescue Errno::ECONNREFUSED => e
-                Rails.logger.warn "Connection to peer #{peer} refused: #{e}"
-                responses[peer] = "connection_error"
-            end
-        end
-        responses
+  def self.send_peer_group_request(peer, peer_groups)
+    Rails.logger.info("Sending peer group request.\n Peer: #{peer}\n Payload: #{peer_groups}")
+    begin
+      RestClient::Request.execute(method: :get, url: "#{peer}:3000/hello",
+                                  timeout: 10) # quick check for unresponsive peer
+      response = RestClient.post("#{peer}:3000/dejima/detect", peer_groups: peer_groups.to_json)
+      Rails.logger.info "Peer #{peer} responded: #{response}"
+      JSON.parse(response.body, symbolize_names: true).map(&PeerGroup.method(:new))
+    rescue RestClient::ExceptionWithResponse => e
+      Rails.logger.warn "RestClient error for peer #{peer}: #{e}"
+      "connection_error"
+    rescue SocketError => e
+      Rails.logger.warn "Couldn't open socket to peer #{peer}: #{e}"
+      "connection_error"
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.warn "Connection to peer #{peer} refused: #{e}"
+      "connection_error"
     end
+  end
 
-    def self.send_update_dejima_table(payload)
-        Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
-
-        peers = ["dejima-gov-peer.dejima-net"] #TODO yusuke ここで、決め打ちでgov-peer に飛ばしているが、これは動的に取得しないと行けないのでは？
-        Rails.logger.info("Sending updates for remote dejima tables.\n Peers: #{peers}\n Payload: #{payload}")
-        responses = {}
-        peers.each do |peer|
-            begin
-                response = RestClient.post("#{peer}:3000/dejima/update_dejima_table", JSON.generate(payload), {content_type: :json, accept: :json})
-                Rails.logger.info "Peer #{peer} responded: #{response}"
-                responses[peer] = JSON.parse response.body
-            rescue RestClient::ExceptionWithResponse => e
-                Rails.logger.warn "RestClient error for peer #{peer}: #{e}"
-            rescue SocketError => e
-                Rails.logger.warn "Couldn't open socket to peer #{peer}: #{e}"
-            rescue Errno::ECONNREFUSED => e
-                Rails.logger.warn "Connection to peer #{peer} refused: #{e}"
-            end
-        end
-        responses
+  def self.send_update_dejima_table(payload)
+    peers = ["dejima-gov-peer.dejima-net"]
+    Rails.logger.info("Sending updates for remote dejima tables.\n Peers: #{peers}\n Payload: #{payload}")
+    responses = {}
+    peers.each do |peer|
+      response = RestClient.post(
+        "#{peer}:3000/dejima/update_dejima_table",
+        JSON.generate(payload),
+        content_type: :json,
+        accept: :json
+      )
+      Rails.logger.info "Peer #{peer} responded: #{response}"
+      responses[peer] = JSON.parse response.body
+    rescue RestClient::ExceptionWithResponse => e
+      Rails.logger.warn "RestClient error for peer #{peer}: #{e}"
+    rescue SocketError => e
+      Rails.logger.warn "Couldn't open socket to peer #{peer}: #{e}"
+    rescue Errno::ECONNREFUSED => e
+      Rails.logger.warn "Connection to peer #{peer} refused: #{e}"
     end
+    responses
+  end
 end
-
 
 # detecting from bank to government
 # request: { values: [:first_name, :last_name, :address, :phone], peers: ['government', 'bank']}

@@ -13,5 +13,4 @@ Rails.application.routes.draw do
       get 'exec_sql', to: 'dejima#exec_sql', controller: 'dejima'
     end
   end
-  
 end

@@ -42,11 +42,6 @@ services:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-gov-peer.dejima-gov-peer-net:3000/dejima/propagate"
-    run:
-      #detach: true
-    exec:
-      tty: true
-      interactive: true
   bank-client:
     image: "yusukew/dejima-prototype:latest"
     requires:
@@ -85,11 +80,6 @@ services:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-bank-peer.dejima-bank-peer-net:3000/dejima/propagate"
-    run:
-      detach: true
-    exec:
-      tty: true
-      interactive: true
   insurance-client:
     image: "dfherr/dejima-prototype:latest"
     requires:
@@ -126,11 +116,28 @@ services:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-insurance-peer.dejima-insurance-peer-net:3000/dejima/propagate"
-    run:
-      detach: true
-    exec:
-      tty: true
-      interactive: true
+  test-peer:
+    image: "dfherr/dejima-prototype:latest"
+    requires:
+      - "test-postgres"
+    networks: ["net", "test-peer-net"]
+    env:
+      - "RAILS_ENV=peer_test"
+      - "PEER_TYPE=government"
+      - "PEER_NETWORK_ADDRESS=dejima-test-peer.dejima-net"
+      - "DEJIMA_PEER_DATABASE_HOST=dejima-test-postgres.dejima-test-peer-net"
+    #detach: true
+    interactive: true
+    tty: true
+    volume: ["peer:/peer"]
+    cmd: "bundle exec rspec"
+  test-postgres:
+    image: "dfherr/dejima-postgres:latest"
+    networks: ["test-peer-net"]
+    env:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=foobar"
+      - "DEJIMA_API_ENDPOINT=dejima-test-peer.dejima-test-peer-net:3000/dejima/propagate"
 
 groups:
   dejima: ["gov-peer", "bank-peer", "insurance-peer"]
@@ -143,3 +150,4 @@ networks:
   gov-client-net:
   bank-client-net:
   insurance-client-net:
+  test-peer-net:

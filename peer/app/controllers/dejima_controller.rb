@@ -1,5 +1,4 @@
 class DejimaController < ApplicationController
-
   def initialize
     super
     @mutex = Mutex.new
@@ -12,45 +11,21 @@ class DejimaController < ApplicationController
 
     raise "Only peer role can run detection" unless Rails.application.config.prototype_role == :peer
 
-    # needs to be synchronized to avoid race conditions on 
+    # needs to be synchronized to avoid race conditions on
     # multiple peers initilizing at the same time
-    # this mutex might be redundant, because we are running in single server mode and 
-    # it would not work in multi-worker mode as it's not shared across processes, but
-    # it illustrates the concept
+    # this mutex might be redundant, because we are running in single server mode and
+    # it probably would not work in multi-worker mode as it's not shared across processes,
+    # but it illustrates the concept
     @mutex.synchronize do
       Rails.logger.info "Responding to detection request"
-      dejima_tables = Set.new(params["dejima_tables"])
-      peers = Set.new(params["peers"])
-      bases = DejimaUtils.identify_bases(dejima_tables) # get whoami by config, **param: dejima_tables is not used inside**
-      local_peer_groups = DejimaUtils.check_local_peer_groups(bases)
-      respond = [] # response is used by rails :)  
-      local_peer_groups.each do |tables, values|
-        # respond if we found tables that are a proper superset (not euqal) or if we know peers not yet known
-        # in the first case the requesting peer needs to be informed about another dejima group needing this data
-        # in the second case there exist more peers needing the data than the requester knew about
-        if tables.proper_superset?(dejima_tables) || !values[:peers].subtract(peers).empty?
-          payload = {}
-          payload[:dejima_tables] = tables.to_a # e.g. ShareWithBank
-          payload[:attributes] = values[:attributes].to_a # e.g. first_name, last_name, phone, address
-          payload[:peers] = values[:peers].to_a # e.g. dejima-bank-peer.dejima-net, dejima-gov-peer.dejima-net
-          respond << payload
-        end
-      end
-      if respond.empty?
-        Rails.logger.info "Detected no required updates to request. Ok!"
-        render json: JSON.generate("ok")
-      else
-        Rails.logger.info "Detected necessary updates:\n #{JSON.pretty_generate(respond)}"
-        render json: JSON.generate(respond)
-      end
+      remote_peer_groups = JSON.parse(params["peer_groups"], symbolize_names: true).map(&PeerGroup.method(:new))
+      render json: DejimaUtils.compare_remote_peer_groups(remote_peer_groups)
     end
   end
 
   # update config based on newer detection run of a peer
   # only available for config.prototype_role == :peer
-  def update_peers
-
-  end
+  def update_peers; end
 
   # only available for config.prototype_role == :peer
   def propagate
@@ -77,17 +52,17 @@ class DejimaController < ApplicationController
       sql_values = "("
       insert.each do |column, value|
         sql_columns += "#{column}, "
-        if value.nil?
-          sql_values += "NULL, "
-        else
-          sql_values += "'#{value}', "
-        end
+        sql_values += if value.nil?
+                        "NULL, "
+                      else
+                        "'#{value}', "
+                      end
       end
       sql_columns = sql_columns[0..-3] + ")"
       sql_values = sql_values[0..-3] + ")"
-      sql_statements << "INSERT INTO #{params["view"]} #{sql_columns} VALUES #{sql_values};"
+      sql_statements << "INSERT INTO #{params['view']} #{sql_columns} VALUES #{sql_values};"
     end
-    Rails.logger.info("Updating dejima table #{params["view"]} with statements:\n#{sql_statements.join("\n")}")
+    Rails.logger.info("Updating dejima table #{params['view']} with statements:\n#{sql_statements.join("\n")}")
     ActiveRecord::Base.connection.execute(sql_statements.join("\n"))
     render json: "true"
   end
@@ -104,5 +79,4 @@ class DejimaController < ApplicationController
     Rails.logger.info("\e[31m " + sql + " is called\e[0m")
     render json: JSON.generate(DejimaUtils.exec_query(sql))
   end
-
 end

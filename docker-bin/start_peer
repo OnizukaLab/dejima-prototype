@@ -17,4 +17,5 @@ bundle check || bundle install
 # create db if it does not exist
 bundle exec rake db:exists || bundle exec rake db:create
 
-bundle exec rails db:migrate && bundle exec puma
+# remove old server pid file, so we can boot multiple instances at once with volume: ["peer:/peer"]
+bundle exec rails db:migrate && rm -f /peer/tmp/pids/server.pid && bundle exec rails server
