@@ -2,7 +2,7 @@ module DejimaBase
   extend ActiveSupport::Concern
 
   included do
-    self.dejima_tables = "test"
+    self.dejima_tables = nil
   end
 
   class_methods do
