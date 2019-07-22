@@ -6,7 +6,7 @@ services:
     interactive: true
     tty: true
   gov-client:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-prototype:latest"
     requires:
       - "gov-postgres"
       - "memcached"
@@ -22,7 +22,7 @@ services:
     publish: ["3001:3000"]
     volume: ["peer:/peer"]
   gov-peer:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-prototype:latest"
     requires:
       - "gov-postgres"
     networks: ["net", "gov-peer-net"]
@@ -48,7 +48,7 @@ services:
       tty: true
       interactive: true
   bank-client:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-prototype:latest"
     requires:
       - "bank-postgres"
       - "memcached"
@@ -64,7 +64,7 @@ services:
     publish: ["3000:3000"]
     volume: ["peer:/peer"]
   bank-peer:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-prototype:latest"
     requires:
       - "bank-postgres"
     networks: ["net", "bank-peer-net"]
