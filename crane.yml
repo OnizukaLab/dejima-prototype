@@ -6,7 +6,7 @@ services:
     interactive: true
     tty: true
   gov-client:
-    image: "yusukew/dejima-prototype:latest"
+    image: "yusukew/dejima-client"
     requires:
       - "gov-postgres"
       - "memcached"
@@ -15,14 +15,15 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=government"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-gov-postgres.dejima-gov-client-net"
+      - "DEJIMA_PEER_HOST=dejima-gov-peer"
       - "MEMCACHE_HOST=memcached"
     #detach: true
     interactive: true
     tty: true
     publish: ["3001:3000"]
-    volume: ["peer:/peer"]
+    volume: ["client:/client"]
   gov-peer:
-    image: "yusukew/dejima-prototype:latest"
+    image: "yusukew/dejima-peer"
     requires:
       - "gov-postgres"
     networks: ["net", "gov-peer-net"]
@@ -31,6 +32,7 @@ services:
       - "PEER_TYPE=government"
       - "PEER_NETWORK_ADDRESS=dejima-gov-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-gov-postgres.dejima-gov-peer-net"
+      - "NODE=peer"
     #detach: true
     interactive: true
     tty: true
@@ -43,7 +45,7 @@ services:
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-gov-peer.dejima-gov-peer-net:3000/dejima/propagate"
   bank-client:
-    image: "yusukew/dejima-prototype:latest"
+    image: "yusukew/dejima-client"
     requires:
       - "bank-postgres"
       - "memcached"
@@ -52,14 +54,16 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=bank"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-bank-postgres.dejima-bank-client-net"
+      - "DEJIMA_PEER_HOST=dejima-bank-peer"
       - "MEMCACHE_HOST=memcached"
+      - "NODE=client"
     #detach: true
     interactive: true
     tty: true
-    publish: ["3000:3000"]
-    volume: ["peer:/peer"]
+    publish: ["81:3000"]
+    volume: ["client:/client"]
   bank-peer:
-    image: "yusukew/dejima-prototype:latest"
+    image: "yusukew/dejima-peer"
     requires:
       - "bank-postgres"
     networks: ["net", "bank-peer-net"]
@@ -68,6 +72,7 @@ services:
       - "PEER_TYPE=bank"
       - "PEER_NETWORK_ADDRESS=dejima-bank-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-bank-postgres.dejima-bank-peer-net"
+      - "NODE=peer"
     #detach: true
     interactive: true
     tty: true
@@ -81,7 +86,7 @@ services:
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-bank-peer.dejima-bank-peer-net:3000/dejima/propagate"
   insurance-client:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-client"
     requires:
       - "insurance-postgres"
       - "memcached"
@@ -90,13 +95,15 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=insurance"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-insurance-postgres.dejima-insurance-client-net"
+      - "DEJIMA_PEER_HOST=dejima-insurance-peer.dejima-insurance-peer-net"
       - "MEMCACHE_HOST=memcached"
+      - "NODE=client"
     #detach: true
     interactive: true
     tty: true
-    volume: ["peer:/peer"]
+    volume: ["client:/client"]
   insurance-peer:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-peer"
     requires:
       - "insurance-postgres"
     networks: ["net", "insurance-peer-net"]
@@ -105,6 +112,7 @@ services:
       - "PEER_TYPE=insurance"
       - "PEER_NETWORK_ADDRESS=dejima-insurance-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-insurance-postgres.dejima-insurance-peer-net"
+      - "NODE=peer"
     #detach: true
     interactive: true
     tty: true
@@ -117,7 +125,7 @@ services:
       - "POSTGRES_PASSWORD=foobar"
       - "DEJIMA_API_ENDPOINT=dejima-insurance-peer.dejima-insurance-peer-net:3000/dejima/propagate"
   test-peer:
-    image: "dfherr/dejima-prototype:latest"
+    image: "yusukew/dejima-peer"
     requires:
       - "test-postgres"
     networks: ["net", "test-peer-net"]
@@ -126,6 +134,7 @@ services:
       - "PEER_TYPE=government"
       - "PEER_NETWORK_ADDRESS=dejima-test-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-test-postgres.dejima-test-peer-net"
+      - "NODE=peer"
     #detach: true
     interactive: true
     tty: true

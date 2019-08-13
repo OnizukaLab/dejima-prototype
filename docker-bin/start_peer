@@ -11,6 +11,9 @@ if [ -d ".git/" ]; then
   fi
 fi
 
+
+rm -f /$NODE/tmp/pids/server.pid
+
 # Start server
 bundle check || bundle install
 
