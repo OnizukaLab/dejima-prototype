@@ -13,10 +13,12 @@ RUN apt-get install -y \
     postgresql \
     ruby-dev
 
-ADD peer/Gemfile /peer/Gemfile
-ADD peer/Gemfile.lock /peer/Gemfile.lock
+ARG NODE
 
-WORKDIR /peer
+ADD "./${NODE}/Gemfile" "/${NODE}/"
+ADD "./${NODE}/Gemfile.lock" "/${NODE}/"
+
+WORKDIR "/${NODE}"
 
 RUN bundle install 
 
@@ -27,6 +29,7 @@ RUN apt-get install -y \
     ca-certificates \
     openssl \
     g++ \
+    vim \
     build-essential \
     libc-dev \
     make \
@@ -34,17 +37,17 @@ RUN apt-get install -y \
     postgresql \
     ruby-dev
 
-ENV TZ Europe/Berlin
+ARG NODE
+
+ENV TZ Asia/Tokyo
 
 ADD docker-bin/start_peer /usr/local/bin/start_peer
 RUN chmod 0755 /usr/local/bin/start_peer
 
-WORKDIR /peer
+ADD "./${NODE}" "/${NODE}"
 
-ADD peer /peer
+WORKDIR "/${NODE}"
 
 COPY --from=ruby_builder /usr/local/bundle /usr/local/bundle
-
-EXPOSE 3000
 
 CMD ["start_peer"]
