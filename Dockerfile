@@ -6,7 +6,6 @@ RUN apt-get install -y \
     ca-certificates \
     openssl \
     g++ \
-    vim \
     build-essential \
     libc-dev \
     make \
@@ -30,6 +29,7 @@ RUN apt-get install -y \
     ca-certificates \
     openssl \
     g++ \
+    vim \
     build-essential \
     libc-dev \
     make \
