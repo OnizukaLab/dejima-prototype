@@ -15,7 +15,6 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=government"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-gov-postgres.dejima-gov-client-net"
-      - "DEJIMA_PEER_HOST=dejima-gov-peer"
       - "MEMCACHE_HOST=memcached"
     #detach: true
     interactive: true
@@ -54,7 +53,6 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=bank"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-bank-postgres.dejima-bank-client-net"
-      - "DEJIMA_PEER_HOST=dejima-bank-peer"
       - "MEMCACHE_HOST=memcached"
       - "NODE=client"
     #detach: true
@@ -95,7 +93,6 @@ services:
       - "RAILS_ENV=client_development"
       - "PEER_TYPE=insurance"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-insurance-postgres.dejima-insurance-client-net"
-      - "DEJIMA_PEER_HOST=dejima-insurance-peer.dejima-insurance-peer-net"
       - "MEMCACHE_HOST=memcached"
       - "NODE=client"
     #detach: true
