@@ -25,7 +25,9 @@ module DejimaProxy
   def self.send_update_dejima_table(payload)
     view_name = payload[:view].split('.')[1]
     table = DejimaTable.get_dejima_table_by_view(view_name)
-    peers = PeerGroups.get[table].peers
+    peers = PeerGroups.get[table].peers - [Rails.application.config.peer_network_address].to_set
+
+    Rails.logger.info "send update dejima table to: " + peers.to_s
     Rails.logger.info("Sending updates for remote dejima tables.\n Peers: #{peers}\n Payload: #{payload}")
     responses = {}
     peers.each do |peer|
