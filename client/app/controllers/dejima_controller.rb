@@ -3,7 +3,8 @@ class DejimaController < ApplicationController
   def create_user
     first_name = params["first_name"] || "John"
     last_name = params["last_name"] || "Doe"
-    BankUser.create(first_name: first_name, last_name: last_name)
+    sql = "INSERT INTO bank_users (first_name, last_name,address, phone) VALUES (\'#{first_name}\', \'#{last_name}\', \'address1\', \'phone1')"
+    render json: JSON.generate(DejimaUtils.exec_query(sql))
   end
 
   def exec_sql

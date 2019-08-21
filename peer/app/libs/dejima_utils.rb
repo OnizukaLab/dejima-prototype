@@ -1,7 +1,15 @@
 module DejimaUtils
+
+  def self.get_models_by_table_name(model_names)
+    ActiveRecord::Base.descendants.select do |model|
+      model_names.include? model.table_name
+    end
+  end
+
   # called by config/initializers/dejima_create_peer_groups.rb on startup
-  def self.create_peer_groups(*models)
+  def self.create_peer_groups(*model_names)
     # when creating we begin with all locally known peer groups
+    models = get_models_by_table_name(model_names) # get model by its name
     PeerGroups.update check_local_peer_groups(models)
     Rails.logger.info "Peers groups: #{PeerGroups.get}"
     detect_peer_groups
