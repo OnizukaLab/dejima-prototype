@@ -21,8 +21,8 @@ sleep 10
 tmux split-window "crane run bank-client" &
 sleep 10 
 tmux split-window "crane run gov-peer" &
-#tmux split-window "docker-compose run --service-ports dejima-bank-client" & 
-#sleep 5 
+sleep 10 
+tmux split-window "crane run gov-client" &
 #tmux split-window "docker-compose run --service-ports --name dejima-gov-peer dejima-gov-peer" & 
 #sleep 30
 #tmux split-window "crane run gov-client"
