@@ -48,7 +48,7 @@ AS $$
     IF deletion_data IS NOT DISTINCT FROM NULL THEN 
         deletion_data := '[]';
     END IF; 
-    IF (insertion_data IS DISTINCT FROM '[]') OR (insertion_data IS DISTINCT FROM '[]') THEN 
+    IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
         user_name := (SELECT session_user);
         IF NOT (user_name = 'dejima') THEN 
             json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
@@ -111,7 +111,7 @@ AS $$
     IF deletion_data IS NOT DISTINCT FROM NULL THEN 
         deletion_data := '[]';
     END IF; 
-    IF (insertion_data IS DISTINCT FROM '[]') OR (insertion_data IS DISTINCT FROM '[]') THEN 
+    IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
         user_name := (SELECT session_user);
         IF NOT (user_name = 'dejima') THEN 
             json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
@@ -227,7 +227,7 @@ DROP TABLE Δ_ins_government_users;
         IF deletion_data IS NOT DISTINCT FROM NULL THEN 
             deletion_data := '[]';
         END IF; 
-        IF (insertion_data IS DISTINCT FROM '[]') OR (insertion_data IS DISTINCT FROM '[]') THEN 
+        IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
             user_name := (SELECT session_user);
             IF NOT (user_name = 'dejima') THEN 
                 json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');

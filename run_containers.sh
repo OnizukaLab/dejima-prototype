@@ -18,7 +18,7 @@ echo "start containers"
 
 tmux split-window "crane run bank-peer" &
 sleep 10
-tmux split-window "crane run bank-client" &
+tmux split-window -v "crane run bank-client" &
 sleep 10 
 tmux split-window "crane run gov-peer" &
 sleep 10 

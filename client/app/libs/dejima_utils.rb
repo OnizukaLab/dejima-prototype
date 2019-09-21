@@ -18,7 +18,7 @@ module DejimaUtils
         sem = Semaphore.new
         sem.acquire()
         begin
-            if sql.downcase.to_s.start_with?("insert") or sql.downcase.to_s.start_with?("update") then
+          if sql.downcase.to_s.start_with?("insert") or sql.downcase.to_s.start_with?("update") or sql.downcase.to_s.start_with?("delete") then
                 return exec_upsert(sql)
             elsif sql.downcase.to_s.start_with?("select") then
                 return exec_select(sql)
