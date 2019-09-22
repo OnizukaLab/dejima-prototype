@@ -9,7 +9,8 @@ module DejimaBase
     config = YAML.load_file(ENV['CONFIG'])
 
     views = []
-    config["peer_types"][Rails.application.config.dejima_peer_type.to_s]["base_table"][base.to_s]["dejima_table"].each do |dt|
+    base_tables = config["peer_types"][Rails.application.config.dejima_peer_type.to_s]["base_table"]
+    base_tables.map{|bt| config["base_tables"][bt]["dejima_table"]}.flatten(1).each do |dt|
       view = {}
       view[:table] = dt.constantize
       view[:peers] = config["dejima_tables"][dt]["peers"].to_set

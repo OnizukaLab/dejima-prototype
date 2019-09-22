@@ -7,20 +7,24 @@ dejima_tables:
       peers:
         - "dejima-gov-peer.dejima-net"
         - "dejima-bank-peer.dejima-net"
+base_tables:
+  GovernmentUser:
+    dejima_table:
+      - "ShareWithInsurance"
+      - "ShareWithBank"
+  BankUser:
+    dejima_table:
+      - "ShareWithBank"
+  InsuranceUser:
+        dejima_table:
+          - "ShareWithInsurance"
 peer_types:
   government:
     base_table:
-      GovernmentUser:
-        dejima_table:
-          - "ShareWithInsurance"
-          - "ShareWithBank"
+      - "GovernmentUser"
   bank:
     base_table:
-      BankUser:
-        dejima_table:
-          - "ShareWithBank"
+      - "BankUser"
   insurance:
     base_table:
-      InsuranceUser:
-        dejima_table:
-          - "ShareWithInsurance"
+      - "InsuranceUser"
