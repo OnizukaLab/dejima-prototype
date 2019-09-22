@@ -32,7 +32,7 @@ services:
       - "PEER_NETWORK_ADDRESS=dejima-gov-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-gov-postgres.dejima-gov-peer-net"
       - "NODE=peer"
-      - "CONFIG=/peer/config.yml"
+      - "CONFIG=/peer/dejima_setting.yml"
     #detach: true
     interactive: true
     tty: true
@@ -72,7 +72,7 @@ services:
       - "PEER_NETWORK_ADDRESS=dejima-bank-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-bank-postgres.dejima-bank-peer-net"
       - "NODE=peer"
-      - "CONFIG=/peer/config.yml"
+      - "CONFIG=/peer/dejima_setting.yml"
     #detach: true
     interactive: true
     tty: true
@@ -112,7 +112,7 @@ services:
       - "PEER_NETWORK_ADDRESS=dejima-insurance-peer.dejima-net"
       - "DEJIMA_PEER_DATABASE_HOST=dejima-insurance-postgres.dejima-insurance-peer-net"
       - "NODE=peer"
-      - "CONFIG=/peer/config.yml"
+      - "CONFIG=/peer/dejima_setting.yml"
     #detach: true
     interactive: true
     tty: true
