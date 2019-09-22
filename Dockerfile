@@ -1,17 +1,17 @@
-FROM ruby:2.6.1 as ruby_builder
+FROM ruby:2.6.1-alpine as ruby_builder
 MAINTAINER Yusuke-Wakuta (inherits from Dennis-Florian Herr <herrdeflo@gmail.com>)
 
-RUN apt-get update
-RUN apt-get install -y \
+RUN apk add --update --no-cache \
     ca-certificates \
     openssl \
     g++ \
-    build-essential \
+    gcc \
     libc-dev \
     make \
     patch \
-    postgresql \
-    ruby-dev
+    postgresql-dev \
+    ruby-dev \
+    && rm -rf /var/cache/apk/*
 
 ARG NODE
 
@@ -22,20 +22,18 @@ WORKDIR "/${NODE}"
 
 RUN bundle install 
 
-FROM ruby:2.6.1
+FROM ruby:2.6.1-alpine
 
-RUN apt-get update
-RUN apt-get install -y \
+RUN apk add --update --no-cache \
     ca-certificates \
     openssl \
-    g++ \
+    libstdc++ \
+    postgresql-dev \
     vim \
-    build-essential \
-    libc-dev \
+    tzdata \
     make \
-    patch \
-    postgresql \
-    ruby-dev
+    bash \
+    && rm -rf /var/cache/apk/*
 
 ARG NODE
 

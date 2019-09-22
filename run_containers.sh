@@ -10,9 +10,7 @@ removecontainers() {
 
 removecontainers
 docker network prune -f
-# docker rmi -f $(docker images --filter dangling=true -qa)
 docker volume rm $(docker volume ls --filter dangling=true -q)
-# docker rmi -f $(docker images -qa)
 
 echo "start containers"
 
@@ -23,6 +21,3 @@ sleep 10
 tmux split-window "crane run gov-peer" &
 sleep 10 
 tmux split-window "crane run gov-client" &
-#tmux split-window "docker-compose run --service-ports --name dejima-gov-peer dejima-gov-peer" & 
-#sleep 30
-#tmux split-window "crane run gov-client"
