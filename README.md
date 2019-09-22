@@ -4,11 +4,11 @@ This project is a prototype for the Dejima data sharing architecture. It uses a 
 
 Due to emulating BX behavior using sql triggers, the prototype has several limitations:
 
-* It has no access to reads (required for consistency)
+* It has no access to read set (required for consistency)
 * It has no access to transaction numbers (required for consistency, especially detecting staleness)
 * It can't handle complex transformations across dependend dejima groups. This needs an additional transformation response from a peer, which is connecting two dependent dejima groups.
 * Database users are used to determine the origin of a request. The user "dejima" is locked for coordination layer requests, while every other user makes regular updates
-* Updates are translated to insert/delete querries, which might result in severe performance issues (reindexing, data fragementation)
+* Updates are translated to insert/delete queries, which might result in severe performance issues (reindexing, data fragementation)
 
 The prototype uses a very simple example of three peers. A bank, an insurance and the government. These three peers share person registration data: firstname, lastname, birthdate, address and phone number. The government knows about all this data, while the insurance does not know the phone number and the bank does not know the birthdate.
 
@@ -30,7 +30,7 @@ Therefore you need to install:
 
 While rebuilding the images is not necessary for regular development (see Configuration below), it is necessary to rebuild the images to modify the installed packages inside the images.
 
-The images are hosted on Dockerhub and can be built locally. The peer [Dockerfile](Dockerfile) is in the root directory. The Dockerfile for the modified postgres database is in [docker-postgres/Dockerfile](docker-postgres/Dockerfile). Both images use the very small alpine base images. A [Makefile](Makefile) is provided to easily update the images. Running `make build` in the project root will rebuild the docker image locally.
+The images are hosted on Dockerhub and can be built locally. The [Dockerfile](Dockerfile) for peer and client is in the root directory. The Dockerfile for the modified postgres database is in [docker-postgres/Dockerfile](docker-postgres/Dockerfile). Both images use the very small alpine base images. A [Makefile](Makefile) is provided to easily update the images. Running `make build` in the project root will rebuild the docker image locally.
 
 ## How to use
 
@@ -47,7 +47,97 @@ crane run insurance-peer
 crane run insurance-client
 ```
 
-You do not have to boot all of them. E.g. just running `gov-peer` and `bank-peer` will create a simple dejima network with one dejima group.
+You do not have to boot all of them. E.g. just running `gov-client`, `gov-peer`, `bank-client` and `bank-peer` will create a simple dejima network with one dejima group.
+The client server's only job is to manage global locks on memcached.
+All insertion or deletion need to be executed through client server for using global lock.
+After running `gov-client`, `gov-peer`, `bank-client` and `bank-peer` container, you can check the propagation of inserted record by running commands below.
+
+```
+curl http://localhost:81/dejima/create_user/firstname/lastname
+```
+
+## How to add new peer
+
+**\*Procedure below is not checked yet\***
+You can add new peer ,<peer_name>, to the dejima-prototype by steps below:
+
+1. create postgres database schema and triggers by [Van Dang https://github.com/dangtv/BIRDS](https://github.com/dangtv/BIRDS)
+2. add new services to the [crane.yml](crane.yml). client, peer and postgres containers are required for each peer. Example of new services are below:
+
+```
+services:
+ <peer_name>-peer:
+    image: "yusukew/dejima-peer"
+    requires:
+      - "<peer_name>-postgres"
+    networks: ["net", "<peer_name>-peer-net"]
+    env:
+      - "RAILS_ENV=peer_development"
+      - "PEER_TYPE=<peer_name>"
+      - "PEER_NETWORK_ADDRESS=dejima-<peer_name>-peer.dejima-net"
+      - "DEJIMA_PEER_DATABASE_HOST=dejima-<peer_name>-postgres.dejima-<peer_name>-peer-net"
+      - "NODE=peer"
+      - "CONFIG=/peer/dejima_setting.yml"
+    interactive: true
+    tty: true
+    volume: ["peer:/peer"]
+  <peer_name>-postgres:
+    image: "dfherr/dejima-postgres:latest"
+    networks: ["<peer_name>-peer-net", "<peer_name>-client-net"]
+    env:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=foobar"
+      - "DEJIMA_API_ENDPOINT=dejima--peer.dejima-<peer_name>-peer-net:3000/dejima/propagate"
+  <peer_name>-client:
+    image: "yusukew/dejima-client"
+    requires:
+      - "<peer_name>-postgres"
+      - "memcached"
+    networks: ["net", "<peer_name>-client-net"]
+    env:
+      - "RAILS_ENV=client_development"
+      - "PEER_TYPE=<peer_name>"
+      - "DEJIMA_PEER_DATABASE_HOST=dejima-<peer_name>-postgres.dejima-<peer_name>-client-net"
+      - "MEMCACHE_HOST=memcached"
+    interactive: true
+    tty: true
+    publish: ["3001:3000"]
+    volume: ["client:/client"]
+
+
+networks:
+  net:
+  <peer_name>-peer-net:
+  <peer_name>-client-net:
+```
+
+3. add base table <-> dejima table <-> peer relationship to [peer/dejima_setting.yml](peer/dejima_setting.yml). The example is below.
+
+```
+# the relation between dejima table <-> peer
+dejima_tables:
+    ShareWithPeer0:
+      peers:
+        - "dejima-<peer_name>-peer.dejima-net"
+        - "dejima-peer0-peer.dejima-net"
+    ShareWithPeer1:
+      peers:
+        - "dejima-<peer_name>-peer.dejima-net"
+        - "dejima-peer1-peer.dejima-net"
+
+# the relation between base table <-> dejima table
+base_tables:
+  <peer_name>_user:
+    dejima_table:
+      - "ShareWithPeer0"
+      - "ShareWithPeer1"
+
+# the relation between peer <-> base table
+peer_types:
+  <peer_name>:
+    base_table:
+      - "<peer_name>_user"
+```
 
 ### Remarks
 
@@ -59,6 +149,7 @@ You do not have to boot all of them. E.g. just running `gov-peer` and `bank-peer
 
 ### Configuration
 
+* New relationship between base table, dejima table and peer can be added by modifing the [peer/dejima_setting.yml](peer/dejima_setting.yml)
 * With the provided configuration the bank-client is reachable from the host system using port 3000. This can be configured in the crane.yml with the  `publish` option. See [crane.yml](crane.yml) `bank-client` configuration. Example: `publish: ["80:3000"]` would link the port 3000 of the container to port 80 of the host system running docker.
 * The provided configuration mounts the peer code of the host system into the docker container using the `volume` option. This means all changes to the code on the host system are used the the container without rebuilding the image. Just edit the files inside of peer folder and the changes will be used by the docker containers. *The server might require a restart for some changes to take affect.*
 * The `rm` option will automatically remove a container when stopped and create a new container on the next startup. This is usually very handy, but might be hurtful if you need to look at a container after it failed. Remove the `rm` option in the crane.yml to disable this.
@@ -82,6 +173,7 @@ Here is an overview of the most important files:
 
 * [app/controllers/dejima_controller.rb](peer/app/controllers/dejima_controller.rb) provides API endpoints reachable per http. It provides an endpoint for creating users for the clients and all communication endpoints for the peers.
 * [config/routes.rb](peer/config/routes.rb) configures the links between HTTP URLs and controller methods.
+* [peer/dejima_setting.yml](peer/dejima_setting.yml) configures the relationships between base table, dejima table and peers.
 * [app/libs/](peer/app/libs/) has the `dejima_proxy.rb` this is responsible for the outgoing requests to other peers and the `dejima_utils.rb`, which has the code for the dejima framework algorithms.
 * [app/models](peer/app/models/) has the ORM ckasses for the database access.
 * [db/migrate](peer/db/migrate/) has the code for creating database tables and other modifications. Only the tables for the configured `PEER_TYPE` will be created. These files will be run on startup and only applied once.

@@ -16,7 +16,7 @@ class Semaphore
         break
       end
       Rails.logger.info("wait for unlock")
-      sleep(30)
+      sleep(1)
     end
   end
 

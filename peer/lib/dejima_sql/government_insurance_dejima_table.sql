@@ -1,8 +1,7 @@
--- Copyright Van Dang https://github.com/dangtv/BIRDS
 CREATE OR REPLACE VIEW public.dejima_insurance AS 
 SELECT __dummy__.COL0 AS FIRST_NAME,__dummy__.COL1 AS LAST_NAME,__dummy__.COL2 AS ADDRESS,__dummy__.COL3 AS BIRTHDATE 
-FROM (SELECT DISTINCT dejima_insurance_a4_0.COL0 AS COL0, dejima_insurance_a4_0.COL1 AS COL1, dejima_insurance_a4_0.COL2 AS COL2, dejima_insurance_a4_0.COL3 AS COL3 
-FROM (SELECT DISTINCT government_users_a6_0.FIRST_NAME AS COL0, government_users_a6_0.LAST_NAME AS COL1, government_users_a6_0.ADDRESS AS COL2, government_users_a6_0.BIRTHDATE AS COL3 
+FROM (SELECT dejima_insurance_a4_0.COL0 AS COL0, dejima_insurance_a4_0.COL1 AS COL1, dejima_insurance_a4_0.COL2 AS COL2, dejima_insurance_a4_0.COL3 AS COL3 
+FROM (SELECT government_users_a6_0.FIRST_NAME AS COL0, government_users_a6_0.LAST_NAME AS COL1, government_users_a6_0.ADDRESS AS COL2, government_users_a6_0.BIRTHDATE AS COL3 
 FROM public.government_users AS government_users_a6_0  ) AS dejima_insurance_a4_0  ) AS __dummy__;
 
 DROP MATERIALIZED VIEW IF EXISTS public.__dummy__materialized_dejima_insurance;
@@ -14,6 +13,7 @@ CREATE EXTENSION IF NOT EXISTS plsh;
 
 CREATE OR REPLACE FUNCTION public.dejima_insurance_run_shell(text) RETURNS text AS $$
 #!/bin/sh
+
 result=$(curl -s -X POST -H "Content-Type: application/json" $DEJIMA_API_ENDPOINT -d "$1")
 if  [ "$result" = "true" ];  then
     echo "true"
@@ -80,7 +80,7 @@ AS $$
         GET STACKED DIAGNOSTICS text_var1 = RETURNED_SQLSTATE,
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = MESSAGE_TEXT;
-        RAISE SQLSTATE 'DA000' USING MESSAGE = 'error on the function public.dejima_insurance_detect_update() ; error code: ' || text_var1 || ' ; ' || text_var2 ||' ; ' || text_var3;
+        RAISE SQLSTATE 'DA000' USING MESSAGE = 'error on the function (non_trigger_)public.dejima_insurance_detect_update() ; error code: ' || text_var1 || ' ; ' || text_var2 ||' ; ' || text_var3;
         RETURN NULL;
   END;
 $$;
@@ -143,7 +143,7 @@ AS $$
         GET STACKED DIAGNOSTICS text_var1 = RETURNED_SQLSTATE,
                                 text_var2 = PG_EXCEPTION_DETAIL,
                                 text_var3 = MESSAGE_TEXT;
-        RAISE SQLSTATE 'DA000' USING MESSAGE = 'error on the function public.dejima_insurance_detect_update() ; error code: ' || text_var1 || ' ; ' || text_var2 ||' ; ' || text_var3;
+        RAISE SQLSTATE 'DA000' USING MESSAGE = 'error on the function (non_trigger_)public.dejima_insurance_detect_update() ; error code: ' || text_var1 || ' ; ' || text_var2 ||' ; ' || text_var3;
         RETURN NULL;
   END;
 $$;
@@ -175,51 +175,50 @@ temprecΔ_ins_government_users public.government_users%ROWTYPE;
         CREATE TEMPORARY TABLE dejima_insurance_delta_action_flag ON COMMIT DROP AS (SELECT true as finish);
         IF EXISTS (SELECT WHERE false )
         THEN 
-          RAISE check_violation USING MESSAGE = 'Invalid update on view';
+          RAISE check_violation USING MESSAGE = 'Invalid view update: constraints on the view are violated';
+        END IF;
+        IF EXISTS (SELECT WHERE false )
+        THEN 
+          RAISE check_violation USING MESSAGE = 'Invalid view update: constraints on the source relations are violated';
         END IF;
         CREATE TEMPORARY TABLE Δ_del_government_users WITH OIDS ON COMMIT DROP AS SELECT (ROW(COL0,COL1,COL2,COL3,COL4,COL5) :: public.government_users).* 
-            FROM (SELECT DISTINCT Δ_del_government_users_a6_0.COL0 AS COL0, Δ_del_government_users_a6_0.COL1 AS COL1, Δ_del_government_users_a6_0.COL2 AS COL2, Δ_del_government_users_a6_0.COL3 AS COL3, Δ_del_government_users_a6_0.COL4 AS COL4, Δ_del_government_users_a6_0.COL5 AS COL5 
-FROM (SELECT DISTINCT government_users_a6_0.ID AS COL0, government_users_a6_0.FIRST_NAME AS COL1, government_users_a6_0.LAST_NAME AS COL2, government_users_a6_0.PHONE AS COL3, government_users_a6_0.ADDRESS AS COL4, government_users_a6_0.BIRTHDATE AS COL5 
+            FROM (SELECT Δ_del_government_users_a6_0.COL0 AS COL0, Δ_del_government_users_a6_0.COL1 AS COL1, Δ_del_government_users_a6_0.COL2 AS COL2, Δ_del_government_users_a6_0.COL3 AS COL3, Δ_del_government_users_a6_0.COL4 AS COL4, Δ_del_government_users_a6_0.COL5 AS COL5 
+FROM (SELECT government_users_a6_0.ID AS COL0, government_users_a6_0.FIRST_NAME AS COL1, government_users_a6_0.LAST_NAME AS COL2, government_users_a6_0.PHONE AS COL3, government_users_a6_0.ADDRESS AS COL4, government_users_a6_0.BIRTHDATE AS COL5 
 FROM public.government_users AS government_users_a6_0 
 WHERE NOT EXISTS ( SELECT * 
-FROM (SELECT DISTINCT __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME AS COL0, __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AS COL1, __dummy__materialized_dejima_insurance_a4_0.ADDRESS AS COL2, __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM public.__dummy__materialized_dejima_insurance AS __dummy__materialized_dejima_insurance_a4_0 
+FROM (SELECT dejima_insurance_a4_0.FIRST_NAME AS COL0, dejima_insurance_a4_0.LAST_NAME AS COL1, dejima_insurance_a4_0.ADDRESS AS COL2, dejima_insurance_a4_0.BIRTHDATE AS COL3 
+FROM public.dejima_insurance AS dejima_insurance_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_dejima_insurance AS __temp__Δ_del_dejima_insurance_a4 
-WHERE __temp__Δ_del_dejima_insurance_a4.BIRTHDATE IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AND __temp__Δ_del_dejima_insurance_a4.ADDRESS IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.ADDRESS AND __temp__Δ_del_dejima_insurance_a4.LAST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AND __temp__Δ_del_dejima_insurance_a4.FIRST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME )  UNION SELECT DISTINCT __temp__Δ_ins_dejima_insurance_a4_0.FIRST_NAME AS COL0, __temp__Δ_ins_dejima_insurance_a4_0.LAST_NAME AS COL1, __temp__Δ_ins_dejima_insurance_a4_0.ADDRESS AS COL2, __temp__Δ_ins_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM __temp__Δ_ins_dejima_insurance AS __temp__Δ_ins_dejima_insurance_a4_0  ) AS dejima_insurance_a4 
-WHERE dejima_insurance_a4.COL3 IS NOT DISTINCT FROM government_users_a6_0.BIRTHDATE AND dejima_insurance_a4.COL2 IS NOT DISTINCT FROM government_users_a6_0.ADDRESS AND dejima_insurance_a4.COL1 IS NOT DISTINCT FROM government_users_a6_0.LAST_NAME AND dejima_insurance_a4.COL0 IS NOT DISTINCT FROM government_users_a6_0.FIRST_NAME ) ) AS Δ_del_government_users_a6_0  ) AS Δ_del_government_users_extra_alias;
+WHERE __temp__Δ_del_dejima_insurance_a4.BIRTHDATE = dejima_insurance_a4_0.BIRTHDATE AND __temp__Δ_del_dejima_insurance_a4.ADDRESS = dejima_insurance_a4_0.ADDRESS AND __temp__Δ_del_dejima_insurance_a4.LAST_NAME = dejima_insurance_a4_0.LAST_NAME AND __temp__Δ_del_dejima_insurance_a4.FIRST_NAME = dejima_insurance_a4_0.FIRST_NAME )  UNION SELECT __temp__Δ_ins_dejima_insurance_a4_0.FIRST_NAME AS COL0, __temp__Δ_ins_dejima_insurance_a4_0.LAST_NAME AS COL1, __temp__Δ_ins_dejima_insurance_a4_0.ADDRESS AS COL2, __temp__Δ_ins_dejima_insurance_a4_0.BIRTHDATE AS COL3 
+FROM __temp__Δ_ins_dejima_insurance AS __temp__Δ_ins_dejima_insurance_a4_0  ) AS new_dejima_insurance_a4 
+WHERE new_dejima_insurance_a4.COL3 = government_users_a6_0.BIRTHDATE AND new_dejima_insurance_a4.COL2 = government_users_a6_0.ADDRESS AND new_dejima_insurance_a4.COL1 = government_users_a6_0.LAST_NAME AND new_dejima_insurance_a4.COL0 = government_users_a6_0.FIRST_NAME ) ) AS Δ_del_government_users_a6_0  ) AS Δ_del_government_users_extra_alias;
 
 CREATE TEMPORARY TABLE Δ_ins_government_users WITH OIDS ON COMMIT DROP AS SELECT (ROW(COL0,COL1,COL2,COL3,COL4,COL5) :: public.government_users).* 
-            FROM (SELECT DISTINCT Δ_ins_government_users_a6_0.COL0 AS COL0, Δ_ins_government_users_a6_0.COL1 AS COL1, Δ_ins_government_users_a6_0.COL2 AS COL2, Δ_ins_government_users_a6_0.COL3 AS COL3, Δ_ins_government_users_a6_0.COL4 AS COL4, Δ_ins_government_users_a6_0.COL5 AS COL5 
-FROM (SELECT DISTINCT government_users_a6_1.ID AS COL0, government_users_a6_1.FIRST_NAME AS COL1, government_users_a6_1.LAST_NAME AS COL2, government_users_a6_1.PHONE AS COL3, dejima_insurance_a4_0.COL2 AS COL4, dejima_insurance_a4_0.COL3 AS COL5 
-FROM (SELECT DISTINCT __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME AS COL0, __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AS COL1, __dummy__materialized_dejima_insurance_a4_0.ADDRESS AS COL2, __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM public.__dummy__materialized_dejima_insurance AS __dummy__materialized_dejima_insurance_a4_0 
+            FROM (SELECT Δ_ins_government_users_a6_0.COL0 AS COL0, Δ_ins_government_users_a6_0.COL1 AS COL1, Δ_ins_government_users_a6_0.COL2 AS COL2, Δ_ins_government_users_a6_0.COL3 AS COL3, Δ_ins_government_users_a6_0.COL4 AS COL4, Δ_ins_government_users_a6_0.COL5 AS COL5 
+FROM (SELECT current_max_id_a1_1.COL0+1 AS COL0, new_dejima_insurance_a4_0.COL0 AS COL1, new_dejima_insurance_a4_0.COL1 AS COL2, 'unknown' AS COL3, new_dejima_insurance_a4_0.COL2 AS COL4, new_dejima_insurance_a4_0.COL3 AS COL5 
+FROM (SELECT dejima_insurance_a4_0.FIRST_NAME AS COL0, dejima_insurance_a4_0.LAST_NAME AS COL1, dejima_insurance_a4_0.ADDRESS AS COL2, dejima_insurance_a4_0.BIRTHDATE AS COL3 
+FROM public.dejima_insurance AS dejima_insurance_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_dejima_insurance AS __temp__Δ_del_dejima_insurance_a4 
-WHERE __temp__Δ_del_dejima_insurance_a4.BIRTHDATE IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AND __temp__Δ_del_dejima_insurance_a4.ADDRESS IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.ADDRESS AND __temp__Δ_del_dejima_insurance_a4.LAST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AND __temp__Δ_del_dejima_insurance_a4.FIRST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME )  UNION SELECT DISTINCT __temp__Δ_ins_dejima_insurance_a4_0.FIRST_NAME AS COL0, __temp__Δ_ins_dejima_insurance_a4_0.LAST_NAME AS COL1, __temp__Δ_ins_dejima_insurance_a4_0.ADDRESS AS COL2, __temp__Δ_ins_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM __temp__Δ_ins_dejima_insurance AS __temp__Δ_ins_dejima_insurance_a4_0  ) AS dejima_insurance_a4_0, public.government_users AS government_users_a6_1 
-WHERE government_users_a6_1.FIRST_NAME = dejima_insurance_a4_0.COL0 AND government_users_a6_1.LAST_NAME = dejima_insurance_a4_0.COL1 AND NOT EXISTS ( SELECT * 
-FROM public.government_users AS government_users_a6 
-WHERE government_users_a6.BIRTHDATE IS NOT DISTINCT FROM dejima_insurance_a4_0.COL3 AND government_users_a6.ADDRESS IS NOT DISTINCT FROM dejima_insurance_a4_0.COL2 AND government_users_a6.LAST_NAME IS NOT DISTINCT FROM government_users_a6_1.LAST_NAME AND government_users_a6.FIRST_NAME IS NOT DISTINCT FROM government_users_a6_1.FIRST_NAME )  UNION SELECT DISTINCT 100 AS COL0, dejima_insurance_a4_0.COL0 AS COL1, dejima_insurance_a4_0.COL1 AS COL2, 'unkown' AS COL3, dejima_insurance_a4_0.COL2 AS COL4, dejima_insurance_a4_0.COL3 AS COL5 
-FROM (SELECT DISTINCT __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME AS COL0, __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AS COL1, __dummy__materialized_dejima_insurance_a4_0.ADDRESS AS COL2, __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM public.__dummy__materialized_dejima_insurance AS __dummy__materialized_dejima_insurance_a4_0 
-WHERE NOT EXISTS ( SELECT * 
-FROM __temp__Δ_del_dejima_insurance AS __temp__Δ_del_dejima_insurance_a4 
-WHERE __temp__Δ_del_dejima_insurance_a4.BIRTHDATE IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.BIRTHDATE AND __temp__Δ_del_dejima_insurance_a4.ADDRESS IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.ADDRESS AND __temp__Δ_del_dejima_insurance_a4.LAST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.LAST_NAME AND __temp__Δ_del_dejima_insurance_a4.FIRST_NAME IS NOT DISTINCT FROM __dummy__materialized_dejima_insurance_a4_0.FIRST_NAME )  UNION SELECT DISTINCT __temp__Δ_ins_dejima_insurance_a4_0.FIRST_NAME AS COL0, __temp__Δ_ins_dejima_insurance_a4_0.LAST_NAME AS COL1, __temp__Δ_ins_dejima_insurance_a4_0.ADDRESS AS COL2, __temp__Δ_ins_dejima_insurance_a4_0.BIRTHDATE AS COL3 
-FROM __temp__Δ_ins_dejima_insurance AS __temp__Δ_ins_dejima_insurance_a4_0  ) AS dejima_insurance_a4_0 
+WHERE __temp__Δ_del_dejima_insurance_a4.BIRTHDATE = dejima_insurance_a4_0.BIRTHDATE AND __temp__Δ_del_dejima_insurance_a4.ADDRESS = dejima_insurance_a4_0.ADDRESS AND __temp__Δ_del_dejima_insurance_a4.LAST_NAME = dejima_insurance_a4_0.LAST_NAME AND __temp__Δ_del_dejima_insurance_a4.FIRST_NAME = dejima_insurance_a4_0.FIRST_NAME )  UNION SELECT __temp__Δ_ins_dejima_insurance_a4_0.FIRST_NAME AS COL0, __temp__Δ_ins_dejima_insurance_a4_0.LAST_NAME AS COL1, __temp__Δ_ins_dejima_insurance_a4_0.ADDRESS AS COL2, __temp__Δ_ins_dejima_insurance_a4_0.BIRTHDATE AS COL3 
+FROM __temp__Δ_ins_dejima_insurance AS __temp__Δ_ins_dejima_insurance_a4_0  ) AS new_dejima_insurance_a4_0, (SELECT MAX(all_ids_a1_0.COL0) AS COL0 
+FROM (SELECT 0 AS COL0    UNION SELECT government_users_a6_0.ID AS COL0 
+FROM public.government_users AS government_users_a6_0  ) AS all_ids_a1_0   ) AS current_max_id_a1_1 
 WHERE NOT EXISTS ( SELECT * 
 FROM public.government_users AS government_users_a6 
-WHERE government_users_a6.LAST_NAME IS NOT DISTINCT FROM dejima_insurance_a4_0.COL1 AND government_users_a6.FIRST_NAME IS NOT DISTINCT FROM dejima_insurance_a4_0.COL0 ) ) AS Δ_ins_government_users_a6_0  ) AS Δ_ins_government_users_extra_alias; 
+WHERE government_users_a6.BIRTHDATE = new_dejima_insurance_a4_0.COL3 AND government_users_a6.ADDRESS = new_dejima_insurance_a4_0.COL2 AND government_users_a6.LAST_NAME = new_dejima_insurance_a4_0.COL1 AND government_users_a6.FIRST_NAME = new_dejima_insurance_a4_0.COL0 ) ) AS Δ_ins_government_users_a6_0  ) AS Δ_ins_government_users_extra_alia 
+            EXCEPT 
+            SELECT * FROM  public.government_users; 
 
 FOR temprecΔ_del_government_users IN ( SELECT * FROM Δ_del_government_users) LOOP 
-            DELETE FROM public.government_users WHERE ROW(ID,FIRST_NAME,LAST_NAME,PHONE,ADDRESS,BIRTHDATE) IS NOT DISTINCT FROM  temprecΔ_del_government_users;
+            DELETE FROM public.government_users WHERE ROW(ID,FIRST_NAME,LAST_NAME,PHONE,ADDRESS,BIRTHDATE) =  temprecΔ_del_government_users;
             END LOOP;
 DROP TABLE Δ_del_government_users;
 
-INSERT INTO public.government_users SELECT * FROM  Δ_ins_government_users; 
+INSERT INTO public.government_users (SELECT * FROM  Δ_ins_government_users) ; 
 DROP TABLE Δ_ins_government_users;
-
+        
         insertion_data := (SELECT (array_to_json(array_agg(t)))::text FROM (SELECT * FROM __temp__Δ_ins_dejima_insurance EXCEPT SELECT * FROM public.__dummy__materialized_dejima_insurance) as t);
         IF insertion_data IS NOT DISTINCT FROM NULL THEN 
             insertion_data := '[]';
@@ -271,14 +270,13 @@ AS $$
     IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = '__temp__Δ_ins_dejima_insurance' OR table_name = '__temp__Δ_del_dejima_insurance')
     THEN
         -- RAISE LOG 'execute procedure dejima_insurance_materialization';
-        REFRESH MATERIALIZED VIEW public.__dummy__materialized_dejima_insurance;
-        CREATE TEMPORARY TABLE __temp__Δ_ins_dejima_insurance ( LIKE public.__dummy__materialized_dejima_insurance INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
+        CREATE TEMPORARY TABLE __temp__Δ_ins_dejima_insurance ( LIKE public.dejima_insurance INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_insurance_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
             __temp__Δ_ins_dejima_insurance DEFERRABLE INITIALLY DEFERRED 
             FOR EACH ROW EXECUTE PROCEDURE public.dejima_insurance_delta_action();
 
-        CREATE TEMPORARY TABLE __temp__Δ_del_dejima_insurance ( LIKE public.__dummy__materialized_dejima_insurance INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
+        CREATE TEMPORARY TABLE __temp__Δ_del_dejima_insurance ( LIKE public.dejima_insurance INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_insurance_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
             __temp__Δ_del_dejima_insurance DEFERRABLE INITIALLY DEFERRED 
@@ -315,16 +313,22 @@ AS $$
     -- RAISE LOG 'execute procedure dejima_insurance_update';
     IF TG_OP = 'INSERT' THEN
       -- RAISE LOG 'NEW: %', NEW;
-      DELETE FROM __temp__Δ_del_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) IS NOT DISTINCT FROM NEW;
+      IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
+        RAISE check_violation USING MESSAGE = 'Invalid update on view: view does not accept null value';
+      END IF;
+      DELETE FROM __temp__Δ_del_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) = NEW;
       INSERT INTO __temp__Δ_ins_dejima_insurance SELECT (NEW).*; 
     ELSIF TG_OP = 'UPDATE' THEN
-      DELETE FROM __temp__Δ_ins_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) IS NOT DISTINCT FROM OLD;
+      IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
+        RAISE check_violation USING MESSAGE = 'Invalid update on view: view does not accept null value';
+      END IF;
+      DELETE FROM __temp__Δ_ins_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) = OLD;
       INSERT INTO __temp__Δ_del_dejima_insurance SELECT (OLD).*;
-      DELETE FROM __temp__Δ_del_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) IS NOT DISTINCT FROM NEW;
+      DELETE FROM __temp__Δ_del_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) = NEW;
       INSERT INTO __temp__Δ_ins_dejima_insurance SELECT (NEW).*; 
     ELSIF TG_OP = 'DELETE' THEN
       -- RAISE LOG 'OLD: %', OLD;
-      DELETE FROM __temp__Δ_ins_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) IS NOT DISTINCT FROM OLD;
+      DELETE FROM __temp__Δ_ins_dejima_insurance WHERE ROW(FIRST_NAME,LAST_NAME,ADDRESS,BIRTHDATE) = OLD;
       INSERT INTO __temp__Δ_del_dejima_insurance SELECT (OLD).*;
     END IF;
     RETURN NULL;
@@ -345,3 +349,23 @@ CREATE TRIGGER dejima_insurance_trigger_update
     INSTEAD OF INSERT OR UPDATE OR DELETE ON
       public.dejima_insurance FOR EACH ROW EXECUTE PROCEDURE public.dejima_insurance_update();
 
+-- dejima_insurance(FIRST_NAME, LAST_NAME, ADDRESS, BIRTHDATE) :- government_users(_, FIRST_NAME, LAST_NAME, _, ADDRESS, BIRTHDATE).
+
+CREATE OR REPLACE FUNCTION public.dejima_insurance_col2col_mapping()
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+  DECLARE
+  mappping text;
+  BEGIN
+    mappping = 
+'{
+  dejima_insurance.FIRST_NAME: government_users.FIRST_NAME,
+  dejima_insurance.LAST_NAME: government_users.LAST_NAME,
+  dejima_insurance.ADDRESS: government_users.ADDRESS,
+  dejima_insurance.BIRTHDATE: government_users.BIRTHDATE
+}';
+    RETURN mappping;
+  END;
+$$;
