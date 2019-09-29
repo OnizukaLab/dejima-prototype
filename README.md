@@ -56,13 +56,13 @@ After running `gov-client`, `gov-peer`, `bank-client` and `bank-peer` container,
 curl http://localhost:81/dejima/create_user/firstname/lastname
 ```
 
-## How to add new peer
+## How to build a new application
 
 **\*Procedure below is not checked yet\***
-You can add new peer ,<peer_name>, to the dejima-prototype by steps below:
+You can make new peer ,<peer_name>, in the dejima-prototype by steps below:
 
-1. create postgres database schema and triggers by [Van Dang https://github.com/dangtv/BIRDS](https://github.com/dangtv/BIRDS)
-2. add new services to the [crane.yml](crane.yml). client, peer and postgres containers are required for each peer. Example of new services are below:
+1. create postgres database schema and triggers by [Van Dang](https://github.com/dangtv/BIRDS).
+2. add services to the [crane.yml](crane.yml). client, peer and postgres containers are required for each peer. Example of one service is below:
 
 ```
 services:
@@ -87,7 +87,7 @@ services:
     env:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=foobar"
-      - "DEJIMA_API_ENDPOINT=dejima--peer.dejima-<peer_name>-peer-net:3000/dejima/propagate"
+      - "DEJIMA_API_ENDPOINT=dejima-peer.dejima-<peer_name>-peer-net:3000/dejima/propagate"
   <peer_name>-client:
     image: "yusukew/dejima-client"
     requires:
@@ -104,19 +104,19 @@ services:
     publish: ["3001:3000"]
     volume: ["client:/client"]
 
-
 networks:
   net:
   <peer_name>-peer-net:
   <peer_name>-client-net:
 ```
 
-3. add base table <-> dejima table <-> peer relationship to [peer/dejima_setting.yml](peer/dejima_setting.yml). The example is below.
+3. add base "table - dejima table - peer" relationship to [peer/dejima_setting.yml](peer/dejima_setting.yml). The example when you add one peer <peer_name> to Peer0 and Peer1 is below.
 
 ```
 # the relation between dejima table <-> peer
 dejima_tables:
     ShareWithPeer0:
+      # peers that share this dejima-table
       peers:
         - "dejima-<peer_name>-peer.dejima-net"
         - "dejima-peer0-peer.dejima-net"
@@ -127,16 +127,18 @@ dejima_tables:
 
 # the relation between base table <-> dejima table
 base_tables:
-  <peer_name>_user:
+  <peer_name>_base_table0:
+    # dejima-tables that share this base-table
     dejima_table:
       - "ShareWithPeer0"
       - "ShareWithPeer1"
 
-# the relation between peer <-> base table
+# the relation between peer <-> base-table
 peer_types:
   <peer_name>:
+    # base-tables in this peer
     base_table:
-      - "<peer_name>_user"
+      - "<peer_name>_base_table0"
 ```
 
 ### Remarks
