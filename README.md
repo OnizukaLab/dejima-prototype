@@ -2,8 +2,7 @@
 
 This project is a prototype for the Dejima data sharing architecture. It uses a Ruby on Rails API as the distributed coordination layer on top of a postgresql database, which is modified with plpgsql & plsh sql triggers to emulate BX behavior.
 
-The prototype uses a very simple example of three peers. A bank, an insurance and the government. These three peers share person registration data: firstname, lastname, birthdate, address and phone number. The government knows about all this data, while the insurance does not know the phone number and the bank does not know the birthdate.The rails peer code is in the subdirectory "peer" and client code is in the subdirectory "client". Client is very simple Rails server to pass queries, updates to database and manage global lock. These are not necessary for the prototype, but convenient for manual testing. Which type is launched is controlled via the environment variable `PEER_TYPE`, which takes the values `bank`, `government` and `insurance`. `RAILS_ENV=client_development` will start the application as a client in the development environment, while `RAILS_ENV=peer_development` will start it as a peer in the development environment.
-This is all preconfigured for easy-use in the orchestration file (crane.yml)[crane.yml]. See details further down in How to use.
+The prototype uses a very simple example of three peers. A bank, an insurance and the government. These three peers share person registration data: firstname, lastname, birthdate, address and phone number. The government knows about all this data, while the insurance does not know the phone number and the bank does not know the birthdate.The Rails peer code is in the subdirectory "peer" and client code is in the subdirectory "client". Client is very Rails server to pass queries, updates to database and manage global lock. Which type is launched is controlled via the environment variable `PEER_TYPE`, which takes the values `bank`, `government` and `insurance`. `RAILS_ENV=client_development` will start the application as a client in the development environment, while `RAILS_ENV=peer_development` will start it as a peer in the development environment. This is all preconfigured for easy-use in the orchestration file [crane.yml](crane.yml). See details further down in How to use.
 
 ## Prototype setup
 
@@ -62,7 +61,7 @@ services:
       - "PEER_NETWORK_ADDRESS=dejima-<peer_name>-peer.dejima-net" # tell who am I in the network.
       - "DEJIMA_PEER_DATABASE_HOST=dejima-<peer_name>-postgres.dejima-<peer_name>-peer-net" # the database host name that manages data for this peer.
       - "NODE=peer" # give container type. you can choose peer or client.
-      - "CONFIG=/peer/dejima_setting.yml" # specify the directory of config file
+      - "CONFIG=/peer/dejima_setting.yml" # specify the directory of cofing file
     interactive: true
     tty: true
     volume: ["peer:/peer"] # volume ./peer folder to container directory /peer to make it easier to change the code.
@@ -139,7 +138,7 @@ peer_types:
 * With the provided configuration the bank-client is reachable from the host system using port 3000. This can be configured in the crane.yml with the  `publish` option. See [crane.yml](crane.yml) `bank-client` configuration. Example: `publish: ["80:3000"]` would link the port 3000 of the container to port 80 of the host system running docker.
 * The provided configuration mounts the peer code of the host system into the docker container using the `volume` option. This means all changes to the code on the host system are used the the container without rebuilding the image. Just edit the files inside of peer folder and the changes will be used by the docker containers. *The server might require a restart for some changes to take affect.*
 * The `rm` option will automatically remove a container when stopped and create a new container on the next startup. This is usually very handy, but might be hurtful if you need to look at a container after it failed. Remove the `rm` option in the crane.yml to disable this.
-* You can simply append commands to crane. E.g. `crane run bank-peer bash` will create the bank-peer container with all configured settings and open a bash shell inside the container. Rspectively `crane run bank-peer rails console` will open the rails console inside the container.
+* You can simply append commands to crane. E.g. `crane run bank-peer bash` will create the bank-peer container with all configured settings and open a bash shell inside the container. Rspectively `crane run bank-peer Rails console` will open the Rails console inside the container.
 
 ### Reseting the databases
 
