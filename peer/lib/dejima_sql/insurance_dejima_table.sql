@@ -50,7 +50,7 @@ AS $$
     END IF; 
     IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
         user_name := (SELECT session_user);
-        IF NOT (user_name = 'dejima') THEN 
+        -- IF NOT (user_name = 'dejima') THEN 
             json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
             result := public.dejima_insurance_run_shell(json_data);
             IF result = 'true' THEN 
@@ -67,9 +67,9 @@ AS $$
                 RAISE check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                 || result;
             END IF;
-        ELSE 
-            RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
-        END IF;
+        -- ELSE 
+        --     RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+        -- END IF;
     END IF;
   END IF;
   RETURN NULL;
@@ -113,7 +113,7 @@ AS $$
     END IF; 
     IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
         user_name := (SELECT session_user);
-        IF NOT (user_name = 'dejima') THEN 
+        -- IF NOT (user_name = 'dejima') THEN 
             json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
             result := public.dejima_insurance_run_shell(json_data);
             IF result = 'true' THEN 
@@ -130,9 +130,9 @@ AS $$
                 RAISE check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                 || result;
             END IF;
-        ELSE 
-            RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
-        END IF;
+        -- ELSE 
+        --     RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+        -- END IF;
     END IF;
   END IF;
   RETURN NULL;
@@ -229,7 +229,7 @@ DROP TABLE Δ_ins_insurance_users;
         END IF; 
         IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
             user_name := (SELECT session_user);
-            IF NOT (user_name = 'dejima') THEN 
+            -- IF NOT (user_name = 'dejima') THEN 
                 json_data := concat('{"view": ' , '"public.dejima_insurance"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
                 result := public.dejima_insurance_run_shell(json_data);
                 IF result = 'true' THEN 
@@ -239,9 +239,9 @@ DROP TABLE Δ_ins_insurance_users;
                     RAISE check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                     || result;
                 END IF;
-            ELSE 
-                RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
-            END IF;
+            -- ELSE 
+            --     RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+            -- END IF;
         END IF;
     END IF;
     RETURN NULL;
