@@ -48,6 +48,13 @@ module DejimaProxy
     end
     responses
   end
+
+  def self.check_update_dejima_table(view)
+    view_name = view.split('.')[1]
+    ActiveRecord::Base.connection.execute("SELECT non_trigger_#{view_name}_detect_update();\n")
+    Rails.logger.info("check_update_dejima_table(#{view_name}) is executed.")
+    return 
+  end
 end
 
 # detecting from bank to government

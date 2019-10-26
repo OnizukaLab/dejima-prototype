@@ -84,6 +84,14 @@ class DejimaController < ApplicationController
     if params["deletions"] != []
       ActiveRecord::Base.connection.execute(sql_statements_deletions.join("\n"))
     end
+    
+    bt = "#{ENV["PEER_TYPE"].capitalize}User"
+    bt.constantize.dejima_tables.each do |dejima_table_view|
+      view_name = "public.#{dejima_table_view[:table].view_name}"
+      if view_name != params['view']
+        DejimaProxy.check_update_dejima_table(view_name)
+      end
+    end
     render json: "true"
   end
 end
