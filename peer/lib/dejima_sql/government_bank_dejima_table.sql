@@ -243,6 +243,7 @@ DROP TABLE Δ_ins_government_users;
                 RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
             END IF;
         END IF;
+				REFRESH MATERIALIZED VIEW public.__dummy__materialized_dejima_bank;
     END IF;
     RETURN NULL;
   EXCEPTION
