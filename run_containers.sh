@@ -17,11 +17,11 @@ docker volume rm $(docker volume ls --filter dangling=true -q)
 echo "start containers"
  
 tmux split-window "crane run bank-peer" &
-sleep 10
+sleep 20
 tmux split-window "crane run gov-peer" &
-sleep 10 
+sleep 20 
 tmux split-window "crane run insurance-peer" &
-sleep 10
+sleep 20
 tmux select-pane -U
 tmux select-pane -U
 tmux select-layout even-vertical
@@ -33,3 +33,5 @@ tmux split-window -h "docker exec -it dejima-insurance-postgres psql -U postgres
 tmux select-pane -U
 tmux select-pane -U
 tmux select-pane -U
+tmux split-window -h "crane run bank-client" &
+tmux select-pane -L
