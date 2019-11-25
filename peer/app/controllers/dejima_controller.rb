@@ -46,8 +46,7 @@ class DejimaController < ApplicationController
   def update_dejima_table
     Rails.logger.info("\e[31m" + __method__.to_s + " is called\e[0m")
 
-    sql_statements_insertions = []
-    sql_statements_deletions= []
+    sql_statements = []
     params["insertions"].each do |insert|
       sql_columns = "("
       sql_values = "("
@@ -61,7 +60,7 @@ class DejimaController < ApplicationController
       end
       sql_columns = sql_columns[0..-3] + ")"
       sql_values = sql_values[0..-3] + ")"
-      sql_statements_insertions << "INSERT INTO #{params['view']} #{sql_columns} VALUES #{sql_values};"
+      sql_statements << "INSERT INTO #{params['view']} #{sql_columns} VALUES #{sql_values};"
     end
     params["deletions"].each do |delete|
       sql_where = ""
@@ -74,15 +73,20 @@ class DejimaController < ApplicationController
                       end
       end
       sql_where = sql_where[0..-5] 
-      sql_statements_deletions << "DELETE FROM #{params['view']} WHERE #{sql_where};" 
+      sql_statements << "DELETE FROM #{params['view']} WHERE #{sql_where};" 
     end
-    Rails.logger.info("Updating dejima table #{params['view']} with statements:\n#{sql_statements_insertions.join("\n")}")
-    Rails.logger.info("Updating dejima table #{params['view']} with statements:\n#{sql_statements_deletions.join("\n")}")
-    if params["insertions"] != [] 
-      ActiveRecord::Base.connection.execute(sql_statements_insertions.join("\n"))
-    end
-    if params["deletions"] != []
-      ActiveRecord::Base.connection.execute(sql_statements_deletions.join("\n"))
+    
+    Rails.logger.info("Updating dejima table #{params['view']} with statements:\n#{sql_statements.join("\n")}")
+    ActiveRecord::Base.connection.execute(sql_statements.join("\n"))
+    
+    # check updates on other dejima table
+    bt = "#{ENV["PEER_TYPE"].capitalize}User"
+    bt.constantize.dejima_tables.each do |dejima_table_view|
+      view_name = "public.#{dejima_table_view[:table].view_name}"
+      if view_name != params['view']
+        view_name = view_name.split('.')[1]
+        ActiveRecord::Base.connection.execute("SELECT non_trigger_#{view_name}_detect_update();\n")
+      end
     end
     render json: "true"
   end
