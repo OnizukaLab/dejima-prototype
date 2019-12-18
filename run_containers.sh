@@ -10,14 +10,28 @@ removecontainers() {
 
 removecontainers
 docker network prune -f
+# docker rmi -f $(docker images --filter dangling=true -qa)
 docker volume rm $(docker volume ls --filter dangling=true -q)
-
+# docker rmi -f $(docker images -qa)
+ 
 echo "start containers"
-
+ 
 tmux split-window "crane run bank-peer" &
-sleep 10
-tmux split-window -v "crane run bank-client" &
-sleep 10 
+sleep 20
 tmux split-window "crane run gov-peer" &
-sleep 10 
-tmux split-window "crane run gov-client" &
+sleep 20 
+tmux split-window "crane run insurance-peer" &
+sleep 20
+tmux select-pane -U
+tmux select-pane -U
+tmux select-layout even-vertical
+tmux split-window -h "docker exec -it dejima-bank-postgres psql -U postgres"
+tmux select-pane -D
+tmux split-window -h "docker exec -it dejima-gov-postgres psql -U postgres"
+tmux select-pane -D
+tmux split-window -h "docker exec -it dejima-insurance-postgres psql -U postgres"
+tmux select-pane -U
+tmux select-pane -U
+tmux select-pane -U
+tmux split-window -h "crane run bank-client" &
+tmux select-pane -L

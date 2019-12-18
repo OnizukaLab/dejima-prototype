@@ -112,8 +112,8 @@ AS $$
         deletion_data := '[]';
     END IF; 
     IF (insertion_data IS DISTINCT FROM '[]') OR (deletion_data IS DISTINCT FROM '[]') THEN 
-        user_name := (SELECT session_user);
-        IF NOT (user_name = 'dejima') THEN 
+        -- user_name := (SELECT session_user);
+        -- IF NOT (user_name = 'dejima') THEN 
             json_data := concat('{"view": ' , '"public.dejima_bank"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
             result := public.dejima_bank_run_shell(json_data);
             IF result = 'true' THEN 
@@ -130,9 +130,9 @@ AS $$
                 RAISE check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                 || result;
             END IF;
-        ELSE 
-            RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
-        END IF;
+        -- ELSE 
+        --     RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+        -- END IF;
     END IF;
   END IF;
   RETURN NULL;
@@ -243,6 +243,7 @@ DROP TABLE Δ_ins_bank_users;
                 RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
             END IF;
         END IF;
+				REFRESH MATERIALIZED VIEW public.__dummy__materialized_dejima_bank;
     END IF;
     RETURN NULL;
   EXCEPTION
