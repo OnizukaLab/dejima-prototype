@@ -3,16 +3,13 @@ import psycopg2
 from psycopg2.extras import DictCursor
 import dejimautils
 import requests
-import pprint
 
 class Termination(object):
-    def __init__(self, xid_list, db_conn_dict, child_peer_dict):
-        self.xid_list = xid_list
+    def __init__(self, db_conn_dict, child_peer_dict):
         self.db_conn_dict = db_conn_dict
         self.child_peer_dict = child_peer_dict
 
     def on_post(self, req, resp):
-        print("/termination start")
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
@@ -20,10 +17,10 @@ class Termination(object):
         msg = {}
         current_xid = params['xid'] 
         db_conn = self.db_conn_dict[current_xid]
-        print(db_conn)
+
         if params['result'] == "commit":
             for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}-proxy:8000/post_transaction".format(peer)
+                url = "http://{}-proxy:8000/termination".format(peer)
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
@@ -31,19 +28,19 @@ class Termination(object):
                 }
                 res = requests.post(url, json.dumps(data), headers=headers)
             db_conn.commit()
-            print("result=commit", db_conn)
         elif params['result'] == "abort":
             for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}-proxy:8000/post_transaction".format(peer)
+                url = "http://{}-proxy:8000/termination".format(peer)
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
                     "result": "abort"
                 }
                 res = requests.post(url, json.dumps(data), headers=headers)
-            db_conn.rollback()
-            print("result=abort",db_conn)
+            if db_conn != None:
+                db_conn.rollback()
 
-        db_conn.close()
+        if db_conn != None:
+            db_conn.close()
         msg["result"] = "Success"
         resp.body = json.dumps(msg)
