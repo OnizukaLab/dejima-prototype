@@ -5,18 +5,18 @@ import dejimautils
 import requests
 
 class Execution(object):
-    def __init__(self, peer_name, db_conn_dict, child_peer_dict, dejima_dict):
+    def __init__(self, peer_name, db_conn_dict, child_peer_dict, dejima_config_dict):
         self.peer_name = peer_name
         self.db_conn_dict = db_conn_dict
         self.child_peer_dict = child_peer_dict
-        self.dejima_dict = dejima_dict
+        self.dejima_config_dict = dejima_config_dict
 
     def on_post(self, req, resp):
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        dt_list = list(self.dejima_dict.keys())
+        dt_list = list(self.dejima_config_dict['dejima_table'].keys())
         msg = {"result": "commit"}
         xid_list = self.db_conn_dict.keys()
         current_xid = ""
@@ -68,20 +68,21 @@ class Execution(object):
                 resp.body = json.dumps(msg)
                 db_conn.rollback()
                 db_conn.close()
+                del self.db_conn_dict[current_xid]
                 print("Original Tx: Failed (error in postgres) (xid={})".format(current_xid))
                 return
     
             # propagation
             for dt in dt_list:
-                if self.peer_name in self.dejima_dict[dt]:
+                if self.peer_name in self.dejima_config_dict['dejima_table'][dt]:
                     cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
                     delta, *_ = cur.fetchone()
                     if delta != None:
-                        for peer in self.dejima_dict[dt]:
+                        for peer in self.dejima_config_dict['dejima_table'][dt]:
                             if peer == self.peer_name:
                                 continue
                             child_peer_set.add(peer)
-                            url = "http://{}-proxy:8000/propagate".format(peer)
+                            url = "http://{}:8000/propagate".format(self.dejima_config_dict['peer_address'][peer])
                             headers = {"Content-Type": "application/json"}
                             data = {
                                 "xid": current_xid,
@@ -110,7 +111,7 @@ class Execution(object):
             del msg["query_results"]
             resp.body = json.dumps(msg)
             for child in child_peer_set:
-                url = "http://{}-proxy:8000/termination".format(child)
+                url = "http://{}:8000/termination".format(self.dejima_config_dict['peer_address'][child])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
@@ -125,7 +126,7 @@ class Execution(object):
             msg["result"] = "commit"
             resp.body = json.dumps(msg)
             for child in child_peer_set:
-                url = "http://{}-proxy:8000/termination".format(child)
+                url = "http://{}:8000/termination".format(self.dejima_config_dict['peer_address'][child])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
@@ -137,3 +138,6 @@ class Execution(object):
                     continue
             db_conn.commit()
             db_conn.close()
+        
+
+        del self.db_conn_dict[current_xid]
