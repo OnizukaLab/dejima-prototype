@@ -26,7 +26,10 @@ class Termination(object):
                     "xid": current_xid,
                     "result": "commit"
                 }
-                res = requests.post(url, json.dumps(data), headers=headers)
+                try:
+                    res = requests.post(url, json.dumps(data), headers=headers)
+                except:
+                    continue
             db_conn.commit()
         elif params['result'] == "abort":
             for peer in self.child_peer_dict[current_xid]:
@@ -36,7 +39,10 @@ class Termination(object):
                     "xid": current_xid,
                     "result": "abort"
                 }
-                res = requests.post(url, json.dumps(data), headers=headers)
+                try:
+                    res = requests.post(url, json.dumps(data), headers=headers)
+                except:
+                    continue
             if db_conn != None:
                 db_conn.rollback()
 

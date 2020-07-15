@@ -23,92 +23,55 @@ class Execution(object):
         sql_statements = []
         child_peer_set = set([])
 
-        # ----- Update type check (on Base table or Dejima table)
-        if params['transaction_type'] == "propagation":
-            # ----- xid check -----
-            if params['xid'] in xid_list:
-                msg = {"result": "Failed (loop detection)"}
-                resp.body = json.dumps(msg)
-                print("Propagation Tx: Failed (loop detection) (xid={})".format(params['xid']))
-                return
-            else:
-                current_xid = params['xid']
-                self.db_conn_dict[current_xid] = None
-                _, sql_statements = dejimautils.convert_to_sql_from_json(params['sql_statements'])
-                self.child_peer_dict[current_xid] = []
-            
-        # ----- transaction execution -----
+        # ----- connect to postgreSQL -----
         try:
             db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
         except Exception as e:
             msg = {"result": "Failed (cannot connect PostgreSQL)"}
             resp.body = json.dumps(msg)
-            if params['transaction_type'] == 'original':
-                print("Original Tx: Failed (cannot connect PostgreSQL) (xid=not assigned)")
-            elif params['transaction_type'] == 'propagation':
-                print("Propagated Tx: Failed (cannot connect PostgreSQL) (xid={})".format(current_xid))
-            return
+            print("Original Tx: Failed (cannot connect PostgreSQL) (xid=not assigned)")
 
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
-            if params['transaction_type'] == "original":
-                # note: psycopg2 doesn't need BEGIN statement. Transaction is valid as default.
+            # note: psycopg2 doesn't need BEGIN statement. Transaction is valid as default.
 
-                # get original TX's current_xid
-                try:
-                    cur.execute("SELECT txid_current();")
-                    xid, *_ = cur.fetchone()
-                    current_xid = "{}_{}".format(self.peer_name, xid)
-                    self.db_conn_dict[current_xid] = None
-                    self.child_peer_dict[current_xid] = []
-                except psycopg2.Error as e:
-                    print(e)
-                    msg = {"result": "Failed (cannot begin transaction"}
-                    resp.body = json.dumps(msg)
-                    db_conn.rollback()
-                    db_conn.close()
-                    print("Original Tx: Failed (cannot begin Tx) (xid=not assigned)")
-                    return
-            
-                # execute transaction
-                try:
-                    query_results = {}
-                    sql_statements = params['sql_statements']
-                    for statement in sql_statements:
-                        if statement.startswith("SELECT"):
-                            statement.replace("SELECT", "SELECT FOR UPDATE")
-                            cur.execute(statement)
-                            query_results['{}'.format(cur.query)] = cur.fetchall()
-                        else:
-                            cur.execute(statement)
-                    msg["query_results"] = query_results
-                except psycopg2.Error as e:
-                    print(e)
-                    msg = {"result": "Failed (error in postgres)"}
-                    resp.body = json.dumps(msg)
-                    db_conn.rollback()
-                    db_conn.close()
-                    print("Original Tx: Failed (error in postgres) (xid={})".format(current_xid))
-                    return
-
-            elif params['transaction_type'] == 'propagation':
-                # save connection to database
-                self.db_conn_dict[current_xid] = db_conn
-
-                # execute transaction
-                try:
-                    for statement in sql_statements:
+            # get original TX's current_xid
+            try:
+                cur.execute("SELECT txid_current();")
+                xid, *_ = cur.fetchone()
+                current_xid = "{}_{}".format(self.peer_name, xid)
+                self.db_conn_dict[current_xid] = None
+                self.child_peer_dict[current_xid] = []
+            except psycopg2.Error as e:
+                print(e)
+                msg = {"result": "Failed (cannot begin transaction"}
+                resp.body = json.dumps(msg)
+                db_conn.rollback()
+                db_conn.close()
+                print("Original Tx: Failed (cannot begin Tx) (xid=not assigned)")
+                return
+        
+            # execute transaction
+            try:
+                query_results = {}
+                sql_statements = params['sql_statements']
+                for statement in sql_statements:
+                    if statement.startswith("SELECT"):
+                        statement.replace("SELECT", "SELECT FOR UPDATE")
                         cur.execute(statement)
-                except psycopg2.Error as e:
-                    print(e)
-                    msg = {"result": "Failed (error in postgres)"}
-                    resp.body = json.dumps(msg)
-                    db_conn.rollback()
-                    print("Propagated Tx: Failed (error in postgres) (xid={})".format(current_xid))
-                    return
+                        query_results['{}'.format(cur.query)] = cur.fetchall()
+                    else:
+                        cur.execute(statement)
+                msg["query_results"] = query_results
+            except psycopg2.Error as e:
+                print(e)
+                msg = {"result": "Failed (error in postgres)"}
+                resp.body = json.dumps(msg)
+                db_conn.rollback()
+                db_conn.close()
+                print("Original Tx: Failed (error in postgres) (xid={})".format(current_xid))
+                return
     
             # propagation
-            if params['transaction_type'] == 'propagation':
-                dt_list.remove(params['dejima_table'])
             for dt in dt_list:
                 if self.peer_name in self.dejima_dict[dt]:
                     cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
@@ -118,54 +81,59 @@ class Execution(object):
                             if peer == self.peer_name:
                                 continue
                             child_peer_set.add(peer)
-                            url = "http://{}-proxy:8000/post_transaction".format(peer)
+                            url = "http://{}-proxy:8000/propagate".format(peer)
                             headers = {"Content-Type": "application/json"}
                             data = {
                                 "xid": current_xid,
-                                "transaction_type": "propagation",
                                 "dejima_table": dt,
                                 "sql_statements": delta
                             }
-                            res = requests.post(url, json.dumps(data), headers=headers)
-                            result = res.json()['result']
-                            self.child_peer_dict[current_xid] = child_peer_set
-                            if result != "Success":
-                                msg["result"] = "Failed (Child error)"
+                            try:
+                                res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
+                                result = res.json()['result']
+                                self.child_peer_dict[current_xid] = child_peer_set
+                                if result != "Success":
+                                    msg["result"] = "Failed (Child error)"
+                                    resp.body = json.dumps(msg)
+                            except Exception as e:
+                                print(e)
+                                msg["result"] = "Failed (Child server is not found)"
                                 resp.body = json.dumps(msg)
-                                if params['transaction_type'] == "propagation":
-                                    print("Propagated Tx: Failed (child error) (xid={})".format(current_xid))
-                                    return
+                                break
+                        else:
+                            continue
+                        break
 
-        # child: send "Success" and exit
-        # root: if not all results is "Success", then send "abort" to childs, and db_conn.close()
-        # root: if all results is "Success", then send "commit" to childs. and db_conn.close()
-        if params['transaction_type'] == "propagation":
-            msg["result"] = "Success"
+        # if not all results is "Success", then send "abort" to childs, and db_conn.close()
+        # if all results is "Success", then send "commit" to childs. and db_conn.close()
+        if msg["result"] != "commit":
+            del msg["query_results"]
             resp.body = json.dumps(msg)
-            return
-        elif params['transaction_type'] == "original":
-            if msg["result"] != "commit":
-                del msg["query_results"]
-                resp.body = json.dumps(msg)
-                for child in child_peer_set:
-                    url = "http://{}-proxy:8000/termination".format(child)
-                    headers = {"Content-Type": "application/json"}
-                    data = {
-                        "xid": current_xid,
-                        "result": "abort"
-                    }
-                    res = requests.post(url, json.dumps(data), headers=headers)
-                db_conn.close()
-            else:
-                msg["result"] = "commit"
-                resp.body = json.dumps(msg)
-                for child in child_peer_set:
-                    url = "http://{}-proxy:8000/termination".format(child)
-                    headers = {"Content-Type": "application/json"}
-                    data = {
-                        "xid": current_xid,
-                        "result": "commit"
-                    }
-                    res = requests.post(url, json.dumps(data), headers=headers)
-                db_conn.commit()
-                db_conn.close()
+            for child in child_peer_set:
+                url = "http://{}-proxy:8000/termination".format(child)
+                headers = {"Content-Type": "application/json"}
+                data = {
+                    "xid": current_xid,
+                    "result": "abort"
+                }
+                try:
+                    res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
+                except Exception as e:
+                    continue
+            db_conn.close()
+        else:
+            msg["result"] = "commit"
+            resp.body = json.dumps(msg)
+            for child in child_peer_set:
+                url = "http://{}-proxy:8000/termination".format(child)
+                headers = {"Content-Type": "application/json"}
+                data = {
+                    "xid": current_xid,
+                    "result": "commit"
+                }
+                try:
+                    res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
+                except Exception as e:
+                    continue
+            db_conn.commit()
+            db_conn.close()
