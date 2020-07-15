@@ -30,6 +30,7 @@ class Execution(object):
             msg = {"result": "Failed (cannot connect PostgreSQL)"}
             resp.body = json.dumps(msg)
             print("Original Tx: Failed (cannot connect PostgreSQL) (xid=not assigned)")
+            return
 
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
             # note: psycopg2 doesn't need BEGIN statement. Transaction is valid as default.
