@@ -25,7 +25,7 @@ class Execution(object):
 
         # ----- connect to postgreSQL -----
         try:
-            db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
+            db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host=Univ-db port=5432".format(self.peer_name))
         except Exception as e:
             msg = {"result": "Failed (cannot connect PostgreSQL)"}
             resp.body = json.dumps(msg)
