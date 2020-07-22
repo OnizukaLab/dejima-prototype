@@ -242,9 +242,9 @@ AS $$
   temprecΔ_del_student public.student%ROWTYPE;
 temprecΔ_ins_student public.student%ROWTYPE;
   BEGIN
-    IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_1_3_delta_action_flag') THEN
+    --IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_1_3_delta_action_flag') THEN
         -- RAISE LOG 'execute procedure dejima_1_3_delta_action';
-        CREATE TEMPORARY TABLE dejima_1_3_delta_action_flag ON COMMIT DROP AS (SELECT true as finish);
+        CREATE TEMPORARY TABLE IF NOT EXISTS dejima_1_3_delta_action_flag ON COMMIT DROP AS (SELECT true as finish);
         IF EXISTS (SELECT WHERE false )
         THEN 
           RAISE check_violation USING MESSAGE = 'Invalid view update: constraints on the view are violated';
@@ -320,7 +320,7 @@ DROP TABLE Δ_ins_student;
                     SELECT * FROM __temp__Δ_ins_dejima_1_3;
             END IF;
         END IF;
-    END IF;
+    --END IF;
     RETURN NULL;
   EXCEPTION
     WHEN object_not_in_prerequisite_state THEN
