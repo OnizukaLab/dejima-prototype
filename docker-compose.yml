@@ -21,6 +21,6 @@ services:
     ports:
         - 8001:8000
     depends_on:
-        - univ1-db
+        - univ-db
     environment: 
         - PEER_NAME=Univ # Enter your university (Osaka/ Kyoto/ Hosei)
