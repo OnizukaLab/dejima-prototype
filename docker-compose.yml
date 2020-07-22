@@ -10,7 +10,7 @@ services:
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
     environment:
-        - PEER_NAME=Univ # Enter your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=Univ # Replace with your university (Osaka/ Kyoto/ Hosei)
 
   univ-proxy:
     build: ./proxy
@@ -19,8 +19,8 @@ services:
     volumes:
         - ./proxy:/code
     ports:
-        - 8001:8000
+        - 8000:8000
     depends_on:
         - univ-db
     environment: 
-        - PEER_NAME=Univ # Enter your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=Univ # Replace with your university (Osaka/ Kyoto/ Hosei)
