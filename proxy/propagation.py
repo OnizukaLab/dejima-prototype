@@ -71,7 +71,7 @@ class Propagation(object):
                             if peer == self.peer_name:
                                 continue
                             child_peer_set.add(peer)
-                            url = "http://{}:8000/propagate".format(self.dejima_config_dict['peer_address'][peer])
+                            url = "http://{}:8000/_propagate".format(self.dejima_config_dict['peer_address'][peer])
                             headers = {"Content-Type": "application/json"}
                             data = {
                                 "xid": current_xid,

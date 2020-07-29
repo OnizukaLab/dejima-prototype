@@ -13,8 +13,8 @@ child_peer_dict = {} # key: xid, value: set of child peers for each xid transact
 
 app = falcon.API()
 app.add_route("/post_transaction", Execution(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
-app.add_route("/propagate", Propagation(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
-app.add_route("/termination", Termination(db_conn_dict, child_peer_dict))
+app.add_route("/_propagate", Propagation(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/_terminate_transaction", Termination(db_conn_dict, child_peer_dict))
 
 if __name__ == "__main__":
     from wsgiref import simple_server
