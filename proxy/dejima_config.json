@@ -1,7 +1,7 @@
 {
     "dejima_table": {
-        "dejima_Osaka_Kyoto": ["Osaka", "Kyoto"],
-        "dejima_Osaka_Hosei": ["Osaka", "Hosei"]
+        "dejima_osaka_kyoto": ["Osaka", "Kyoto"],
+        "dejima_osaka_hosei": ["Osaka", "Hosei"]
     },
     "peer_address": {
         "Osaka": "murugan.bigdata-lab",
