@@ -1,12 +1,11 @@
-statements[0]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ1'), (2, 'FIRST', 'LAST', 'Univ1'), (3, 'FIRST', 'LAST', 'Univ1');"
-statements[1]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ2'), (2, 'FIRST', 'LAST', 'Univ2'), (3, 'FIRST', 'LAST', 'Univ2');"
-statements[2]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ3'), (2, 'FIRST', 'LAST', 'Univ3'), (3, 'FIRST', 'LAST', 'Univ3');"
-target=(1 1 1)
+statements[0]="INSERT INTO student VALUES (1, 'Univ1', 'FIRST', 'LAST'), (2, 'Univ1', 'FIRST', 'LAST'), (3, 'Univ1', 'FIRST', 'LAST');"
+#statements[1]="INSERT INTO student VALUES (1, 'Univ2', 'FIRST', 'LAST'), (2, 'Univ2', 'FIRST', 'LAST'), (3, 'Univ2', 'FIRST', 'LAST');"
+#statements[2]="INSERT INTO student VALUES (1, 'Univ3', 'FIRST', 'LAST'), (2, 'Univ3', 'FIRST', 'LAST'), (3, 'Univ3', 'FIRST', 'LAST');"
 
 for i in "${!statements[@]}"
 do
     data="{\"transaction_type\":\"original\", \"sql_statements\":[\"${statements[i]}\"]}"
-    curl -X POST -H "Content-Type:application/json" -d "$data" localhost:800${target[i]}/post_transaction 
+    curl -X POST -H "Content-Type:application/json" -d "$data" localhost:8001/post_transaction 
     echo;
 done
 

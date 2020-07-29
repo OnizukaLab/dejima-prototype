@@ -1,14 +1,14 @@
 
 /*view definition (get):
-dejima_1_2(ID, FIRST_NAME, LAST_NAME, UNIVERSITY) :- p_0(ID, FIRST_NAME, LAST_NAME, UNIVERSITY).
-p_0(ID, FIRST_NAME, LAST_NAME, UNIVERSITY) :- student(ID, FIRST_NAME, LAST_NAME, UNIVERSITY).
+dejima_1_2(ID, UNIVERSITY, FIRST_NAME, LAST_NAME) :- p_0(ID, UNIVERSITY, FIRST_NAME, LAST_NAME).
+p_0(ID, UNIVERSITY, FIRST_NAME, LAST_NAME) :- student(ID, UNIVERSITY, FIRST_NAME, LAST_NAME).
 */
 
 CREATE OR REPLACE VIEW public.dejima_1_2 AS 
-SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS FIRST_NAME,__dummy__.COL2 AS LAST_NAME,__dummy__.COL3 AS UNIVERSITY 
+SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS UNIVERSITY,__dummy__.COL2 AS FIRST_NAME,__dummy__.COL3 AS LAST_NAME 
 FROM (SELECT dejima_1_2_a4_0.COL0 AS COL0, dejima_1_2_a4_0.COL1 AS COL1, dejima_1_2_a4_0.COL2 AS COL2, dejima_1_2_a4_0.COL3 AS COL3 
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
-FROM (SELECT student_a4_0.ID AS COL0, student_a4_0.FIRST_NAME AS COL1, student_a4_0.LAST_NAME AS COL2, student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT student_a4_0.ID AS COL0, student_a4_0.UNIVERSITY AS COL1, student_a4_0.FIRST_NAME AS COL2, student_a4_0.LAST_NAME AS COL3 
 FROM public.student AS student_a4_0  ) AS p_0_a4_0  ) AS dejima_1_2_a4_0  ) AS __dummy__;
 
 CREATE EXTENSION IF NOT EXISTS plsh;
@@ -102,19 +102,19 @@ BEGIN
     IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
         RAISE check_violation USING MESSAGE = 'Invalid update: null value is not accepted';
     END IF;
-    DELETE FROM __temp__Δ_del_student WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = NEW;
+    DELETE FROM __temp__Δ_del_student WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = NEW;
     INSERT INTO __temp__Δ_ins_student SELECT (NEW).*; 
     ELSIF TG_OP = 'UPDATE' THEN
     IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
         RAISE check_violation USING MESSAGE = 'Invalid update: null value is not accepted';
     END IF;
-    DELETE FROM __temp__Δ_ins_student WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = OLD;
+    DELETE FROM __temp__Δ_ins_student WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = OLD;
     INSERT INTO __temp__Δ_del_student SELECT (OLD).*;
-    DELETE FROM __temp__Δ_del_student WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = NEW;
+    DELETE FROM __temp__Δ_del_student WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = NEW;
     INSERT INTO __temp__Δ_ins_student SELECT (NEW).*; 
     ELSIF TG_OP = 'DELETE' THEN
     -- RAISE LOG 'OLD: %', OLD;
-    DELETE FROM __temp__Δ_ins_student WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = OLD;
+    DELETE FROM __temp__Δ_ins_student WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = OLD;
     INSERT INTO __temp__Δ_del_student SELECT (OLD).*;
     END IF;
     RETURN NULL;
@@ -153,18 +153,18 @@ result text;
 user_name text;
 BEGIN
 IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_1_2_delta_action_flag') THEN
-    insertion_data := (SELECT (array_to_json(array_agg(t)))::text FROM (SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS FIRST_NAME,__dummy__.COL2 AS LAST_NAME,__dummy__.COL3 AS UNIVERSITY 
+    insertion_data := (SELECT (array_to_json(array_agg(t)))::text FROM (SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS UNIVERSITY,__dummy__.COL2 AS FIRST_NAME,__dummy__.COL3 AS LAST_NAME 
 FROM (SELECT ∂_ins_dejima_1_2_a4_0.COL0 AS COL0, ∂_ins_dejima_1_2_a4_0.COL1 AS COL1, ∂_ins_dejima_1_2_a4_0.COL2 AS COL2, ∂_ins_dejima_1_2_a4_0.COL3 AS COL3 
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
-FROM (SELECT __temp__Δ_ins_student_a4_0.ID AS COL0, __temp__Δ_ins_student_a4_0.FIRST_NAME AS COL1, __temp__Δ_ins_student_a4_0.LAST_NAME AS COL2, __temp__Δ_ins_student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT __temp__Δ_ins_student_a4_0.ID AS COL0, __temp__Δ_ins_student_a4_0.UNIVERSITY AS COL1, __temp__Δ_ins_student_a4_0.FIRST_NAME AS COL2, __temp__Δ_ins_student_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_ins_student AS __temp__Δ_ins_student_a4_0  ) AS p_0_a4_0  ) AS ∂_ins_dejima_1_2_a4_0  ) AS __dummy__) as t);
     IF insertion_data IS NOT DISTINCT FROM NULL THEN 
         insertion_data := '[]';
     END IF; 
-    deletion_data := (SELECT (array_to_json(array_agg(t)))::text FROM (SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS FIRST_NAME,__dummy__.COL2 AS LAST_NAME,__dummy__.COL3 AS UNIVERSITY 
+    deletion_data := (SELECT (array_to_json(array_agg(t)))::text FROM (SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS UNIVERSITY,__dummy__.COL2 AS FIRST_NAME,__dummy__.COL3 AS LAST_NAME 
 FROM (SELECT ∂_del_dejima_1_2_a4_0.COL0 AS COL0, ∂_del_dejima_1_2_a4_0.COL1 AS COL1, ∂_del_dejima_1_2_a4_0.COL2 AS COL2, ∂_del_dejima_1_2_a4_0.COL3 AS COL3 
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
-FROM (SELECT __temp__Δ_del_student_a4_0.ID AS COL0, __temp__Δ_del_student_a4_0.FIRST_NAME AS COL1, __temp__Δ_del_student_a4_0.LAST_NAME AS COL2, __temp__Δ_del_student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT __temp__Δ_del_student_a4_0.ID AS COL0, __temp__Δ_del_student_a4_0.UNIVERSITY AS COL1, __temp__Δ_del_student_a4_0.FIRST_NAME AS COL2, __temp__Δ_del_student_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_del_student AS __temp__Δ_del_student_a4_0  ) AS p_0_a4_0  ) AS ∂_del_dejima_1_2_a4_0  ) AS __dummy__) as t);
     IF deletion_data IS NOT DISTINCT FROM NULL THEN 
         deletion_data := '[]';
@@ -189,18 +189,18 @@ FROM __temp__Δ_del_student AS __temp__Δ_del_student_a4_0  ) AS p_0_a4_0  ) AS 
             -- update the table that stores the insertions and deletions we calculated
             DELETE FROM public.__dummy__dejima_1_2_detected_deletions;
             INSERT INTO public.__dummy__dejima_1_2_detected_deletions
-                SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS FIRST_NAME,__dummy__.COL2 AS LAST_NAME,__dummy__.COL3 AS UNIVERSITY 
+                SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS UNIVERSITY,__dummy__.COL2 AS FIRST_NAME,__dummy__.COL3 AS LAST_NAME 
 FROM (SELECT ∂_del_dejima_1_2_a4_0.COL0 AS COL0, ∂_del_dejima_1_2_a4_0.COL1 AS COL1, ∂_del_dejima_1_2_a4_0.COL2 AS COL2, ∂_del_dejima_1_2_a4_0.COL3 AS COL3 
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
-FROM (SELECT __temp__Δ_del_student_a4_0.ID AS COL0, __temp__Δ_del_student_a4_0.FIRST_NAME AS COL1, __temp__Δ_del_student_a4_0.LAST_NAME AS COL2, __temp__Δ_del_student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT __temp__Δ_del_student_a4_0.ID AS COL0, __temp__Δ_del_student_a4_0.UNIVERSITY AS COL1, __temp__Δ_del_student_a4_0.FIRST_NAME AS COL2, __temp__Δ_del_student_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_del_student AS __temp__Δ_del_student_a4_0  ) AS p_0_a4_0  ) AS ∂_del_dejima_1_2_a4_0  ) AS __dummy__;
 
             DELETE FROM public.__dummy__dejima_1_2_detected_insertions;
             INSERT INTO public.__dummy__dejima_1_2_detected_insertions
-                SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS FIRST_NAME,__dummy__.COL2 AS LAST_NAME,__dummy__.COL3 AS UNIVERSITY 
+                SELECT __dummy__.COL0 AS ID,__dummy__.COL1 AS UNIVERSITY,__dummy__.COL2 AS FIRST_NAME,__dummy__.COL3 AS LAST_NAME 
 FROM (SELECT ∂_ins_dejima_1_2_a4_0.COL0 AS COL0, ∂_ins_dejima_1_2_a4_0.COL1 AS COL1, ∂_ins_dejima_1_2_a4_0.COL2 AS COL2, ∂_ins_dejima_1_2_a4_0.COL3 AS COL3 
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
-FROM (SELECT __temp__Δ_ins_student_a4_0.ID AS COL0, __temp__Δ_ins_student_a4_0.FIRST_NAME AS COL1, __temp__Δ_ins_student_a4_0.LAST_NAME AS COL2, __temp__Δ_ins_student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT __temp__Δ_ins_student_a4_0.ID AS COL0, __temp__Δ_ins_student_a4_0.UNIVERSITY AS COL1, __temp__Δ_ins_student_a4_0.FIRST_NAME AS COL2, __temp__Δ_ins_student_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_ins_student AS __temp__Δ_ins_student_a4_0  ) AS p_0_a4_0  ) AS ∂_ins_dejima_1_2_a4_0  ) AS __dummy__;
         END IF;
     END IF;
@@ -242,7 +242,7 @@ AS $$
   temprecΔ_del_student public.student%ROWTYPE;
 temprecΔ_ins_student public.student%ROWTYPE;
   BEGIN
-    --IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_1_2_delta_action_flag') THEN
+    -- IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_1_2_delta_action_flag') THEN
         -- RAISE LOG 'execute procedure dejima_1_2_delta_action';
         CREATE TEMPORARY TABLE IF NOT EXISTS dejima_1_2_delta_action_flag ON COMMIT DROP AS (SELECT true as finish);
         IF EXISTS (SELECT WHERE false )
@@ -255,34 +255,34 @@ temprecΔ_ins_student public.student%ROWTYPE;
         END IF;
         CREATE TEMPORARY TABLE Δ_del_student WITH OIDS ON COMMIT DROP AS SELECT (ROW(COL0,COL1,COL2,COL3) :: public.student).* 
             FROM (SELECT Δ_del_student_a4_0.COL0 AS COL0, Δ_del_student_a4_0.COL1 AS COL1, Δ_del_student_a4_0.COL2 AS COL2, Δ_del_student_a4_0.COL3 AS COL3 
-FROM (SELECT student_a4_0.ID AS COL0, student_a4_0.FIRST_NAME AS COL1, student_a4_0.LAST_NAME AS COL2, student_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT student_a4_0.ID AS COL0, student_a4_0.UNIVERSITY AS COL1, student_a4_0.FIRST_NAME AS COL2, student_a4_0.LAST_NAME AS COL3 
 FROM public.student AS student_a4_0 
 WHERE NOT EXISTS ( SELECT * 
-FROM (SELECT dejima_1_2_a4_0.ID AS COL0, dejima_1_2_a4_0.FIRST_NAME AS COL1, dejima_1_2_a4_0.LAST_NAME AS COL2, dejima_1_2_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT dejima_1_2_a4_0.ID AS COL0, dejima_1_2_a4_0.UNIVERSITY AS COL1, dejima_1_2_a4_0.FIRST_NAME AS COL2, dejima_1_2_a4_0.LAST_NAME AS COL3 
 FROM public.dejima_1_2 AS dejima_1_2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_dejima_1_2 AS __temp__Δ_del_dejima_1_2_a4 
-WHERE __temp__Δ_del_dejima_1_2_a4.UNIVERSITY = dejima_1_2_a4_0.UNIVERSITY AND __temp__Δ_del_dejima_1_2_a4.LAST_NAME = dejima_1_2_a4_0.LAST_NAME AND __temp__Δ_del_dejima_1_2_a4.FIRST_NAME = dejima_1_2_a4_0.FIRST_NAME AND __temp__Δ_del_dejima_1_2_a4.ID = dejima_1_2_a4_0.ID )  UNION SELECT __temp__Δ_ins_dejima_1_2_a4_0.ID AS COL0, __temp__Δ_ins_dejima_1_2_a4_0.FIRST_NAME AS COL1, __temp__Δ_ins_dejima_1_2_a4_0.LAST_NAME AS COL2, __temp__Δ_ins_dejima_1_2_a4_0.UNIVERSITY AS COL3 
+WHERE __temp__Δ_del_dejima_1_2_a4.LAST_NAME = dejima_1_2_a4_0.LAST_NAME AND __temp__Δ_del_dejima_1_2_a4.FIRST_NAME = dejima_1_2_a4_0.FIRST_NAME AND __temp__Δ_del_dejima_1_2_a4.UNIVERSITY = dejima_1_2_a4_0.UNIVERSITY AND __temp__Δ_del_dejima_1_2_a4.ID = dejima_1_2_a4_0.ID )  UNION SELECT __temp__Δ_ins_dejima_1_2_a4_0.ID AS COL0, __temp__Δ_ins_dejima_1_2_a4_0.UNIVERSITY AS COL1, __temp__Δ_ins_dejima_1_2_a4_0.FIRST_NAME AS COL2, __temp__Δ_ins_dejima_1_2_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_ins_dejima_1_2 AS __temp__Δ_ins_dejima_1_2_a4_0  ) AS new_dejima_1_2_a4 
-WHERE new_dejima_1_2_a4.COL3 = student_a4_0.UNIVERSITY AND new_dejima_1_2_a4.COL2 = student_a4_0.LAST_NAME AND new_dejima_1_2_a4.COL1 = student_a4_0.FIRST_NAME AND new_dejima_1_2_a4.COL0 = student_a4_0.ID ) ) AS Δ_del_student_a4_0  ) AS Δ_del_student_extra_alias;
+WHERE new_dejima_1_2_a4.COL3 = student_a4_0.LAST_NAME AND new_dejima_1_2_a4.COL2 = student_a4_0.FIRST_NAME AND new_dejima_1_2_a4.COL1 = student_a4_0.UNIVERSITY AND new_dejima_1_2_a4.COL0 = student_a4_0.ID ) ) AS Δ_del_student_a4_0  ) AS Δ_del_student_extra_alias;
 
 CREATE TEMPORARY TABLE Δ_ins_student WITH OIDS ON COMMIT DROP AS SELECT (ROW(COL0,COL1,COL2,COL3) :: public.student).* 
             FROM (SELECT Δ_ins_student_a4_0.COL0 AS COL0, Δ_ins_student_a4_0.COL1 AS COL1, Δ_ins_student_a4_0.COL2 AS COL2, Δ_ins_student_a4_0.COL3 AS COL3 
 FROM (SELECT new_dejima_1_2_a4_0.COL0 AS COL0, new_dejima_1_2_a4_0.COL1 AS COL1, new_dejima_1_2_a4_0.COL2 AS COL2, new_dejima_1_2_a4_0.COL3 AS COL3 
-FROM (SELECT dejima_1_2_a4_0.ID AS COL0, dejima_1_2_a4_0.FIRST_NAME AS COL1, dejima_1_2_a4_0.LAST_NAME AS COL2, dejima_1_2_a4_0.UNIVERSITY AS COL3 
+FROM (SELECT dejima_1_2_a4_0.ID AS COL0, dejima_1_2_a4_0.UNIVERSITY AS COL1, dejima_1_2_a4_0.FIRST_NAME AS COL2, dejima_1_2_a4_0.LAST_NAME AS COL3 
 FROM public.dejima_1_2 AS dejima_1_2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_dejima_1_2 AS __temp__Δ_del_dejima_1_2_a4 
-WHERE __temp__Δ_del_dejima_1_2_a4.UNIVERSITY = dejima_1_2_a4_0.UNIVERSITY AND __temp__Δ_del_dejima_1_2_a4.LAST_NAME = dejima_1_2_a4_0.LAST_NAME AND __temp__Δ_del_dejima_1_2_a4.FIRST_NAME = dejima_1_2_a4_0.FIRST_NAME AND __temp__Δ_del_dejima_1_2_a4.ID = dejima_1_2_a4_0.ID )  UNION SELECT __temp__Δ_ins_dejima_1_2_a4_0.ID AS COL0, __temp__Δ_ins_dejima_1_2_a4_0.FIRST_NAME AS COL1, __temp__Δ_ins_dejima_1_2_a4_0.LAST_NAME AS COL2, __temp__Δ_ins_dejima_1_2_a4_0.UNIVERSITY AS COL3 
+WHERE __temp__Δ_del_dejima_1_2_a4.LAST_NAME = dejima_1_2_a4_0.LAST_NAME AND __temp__Δ_del_dejima_1_2_a4.FIRST_NAME = dejima_1_2_a4_0.FIRST_NAME AND __temp__Δ_del_dejima_1_2_a4.UNIVERSITY = dejima_1_2_a4_0.UNIVERSITY AND __temp__Δ_del_dejima_1_2_a4.ID = dejima_1_2_a4_0.ID )  UNION SELECT __temp__Δ_ins_dejima_1_2_a4_0.ID AS COL0, __temp__Δ_ins_dejima_1_2_a4_0.UNIVERSITY AS COL1, __temp__Δ_ins_dejima_1_2_a4_0.FIRST_NAME AS COL2, __temp__Δ_ins_dejima_1_2_a4_0.LAST_NAME AS COL3 
 FROM __temp__Δ_ins_dejima_1_2 AS __temp__Δ_ins_dejima_1_2_a4_0  ) AS new_dejima_1_2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM public.student AS student_a4 
-WHERE student_a4.UNIVERSITY = new_dejima_1_2_a4_0.COL3 AND student_a4.LAST_NAME = new_dejima_1_2_a4_0.COL2 AND student_a4.FIRST_NAME = new_dejima_1_2_a4_0.COL1 AND student_a4.ID = new_dejima_1_2_a4_0.COL0 ) ) AS Δ_ins_student_a4_0  ) AS Δ_ins_student_extra_alia 
+WHERE student_a4.LAST_NAME = new_dejima_1_2_a4_0.COL3 AND student_a4.FIRST_NAME = new_dejima_1_2_a4_0.COL2 AND student_a4.UNIVERSITY = new_dejima_1_2_a4_0.COL1 AND student_a4.ID = new_dejima_1_2_a4_0.COL0 ) ) AS Δ_ins_student_a4_0  ) AS Δ_ins_student_extra_alia 
             EXCEPT 
             SELECT * FROM  public.student; 
 
 FOR temprecΔ_del_student IN ( SELECT * FROM Δ_del_student) LOOP 
-            DELETE FROM public.student WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) =  temprecΔ_del_student;
+            DELETE FROM public.student WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) =  temprecΔ_del_student;
             END LOOP;
 DROP TABLE Δ_del_student;
 
@@ -320,7 +320,7 @@ DROP TABLE Δ_ins_student;
                     SELECT * FROM __temp__Δ_ins_dejima_1_2;
             END IF;
         END IF;
-    --END IF;
+    -- END IF;
     RETURN NULL;
   EXCEPTION
     WHEN object_not_in_prerequisite_state THEN
@@ -350,13 +350,13 @@ AS $$
         CREATE TEMPORARY TABLE __temp__Δ_ins_dejima_1_2 ( LIKE public.dejima_1_2 INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_1_2_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
-            __temp__Δ_ins_dejima_1_2 DEFERRABLE INITIALLY IMMEDIATE 
+            __temp__Δ_ins_dejima_1_2 DEFERRABLE INITIALLY DEFERRED 
             FOR EACH ROW EXECUTE PROCEDURE public.dejima_1_2_delta_action();
 
         CREATE TEMPORARY TABLE __temp__Δ_del_dejima_1_2 ( LIKE public.dejima_1_2 INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_1_2_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
-            __temp__Δ_del_dejima_1_2 DEFERRABLE INITIALLY IMMEDIATE 
+            __temp__Δ_del_dejima_1_2 DEFERRABLE INITIALLY DEFERRED 
             FOR EACH ROW EXECUTE PROCEDURE public.dejima_1_2_delta_action();
     END IF;
     RETURN NULL;
@@ -393,19 +393,19 @@ AS $$
       IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
         RAISE check_violation USING MESSAGE = 'Invalid update on view: view does not accept null value';
       END IF;
-      DELETE FROM __temp__Δ_del_dejima_1_2 WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = NEW;
+      DELETE FROM __temp__Δ_del_dejima_1_2 WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = NEW;
       INSERT INTO __temp__Δ_ins_dejima_1_2 SELECT (NEW).*; 
     ELSIF TG_OP = 'UPDATE' THEN
       IF (SELECT count(*) FILTER (WHERE j.value = jsonb 'null') FROM  jsonb_each(to_jsonb(NEW)) j) > 0 THEN 
         RAISE check_violation USING MESSAGE = 'Invalid update on view: view does not accept null value';
       END IF;
-      DELETE FROM __temp__Δ_ins_dejima_1_2 WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = OLD;
+      DELETE FROM __temp__Δ_ins_dejima_1_2 WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = OLD;
       INSERT INTO __temp__Δ_del_dejima_1_2 SELECT (OLD).*;
-      DELETE FROM __temp__Δ_del_dejima_1_2 WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = NEW;
+      DELETE FROM __temp__Δ_del_dejima_1_2 WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = NEW;
       INSERT INTO __temp__Δ_ins_dejima_1_2 SELECT (NEW).*; 
     ELSIF TG_OP = 'DELETE' THEN
       -- RAISE LOG 'OLD: %', OLD;
-      DELETE FROM __temp__Δ_ins_dejima_1_2 WHERE ROW(ID,FIRST_NAME,LAST_NAME,UNIVERSITY) = OLD;
+      DELETE FROM __temp__Δ_ins_dejima_1_2 WHERE ROW(ID,UNIVERSITY,FIRST_NAME,LAST_NAME) = OLD;
       INSERT INTO __temp__Δ_del_dejima_1_2 SELECT (OLD).*;
     END IF;
     RETURN NULL;

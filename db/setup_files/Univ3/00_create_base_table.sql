@@ -1,7 +1,8 @@
 CREATE TABLE student (
-  ID int,
-  FIRST_NAME varchar(80) NOT NULL,
-  LAST_NAME varchar(80),
+  ID int NOT NULL,
   UNIVERSITY varchar(80) NOT NULL,
-  unique(ID, UNIVERSITY)
+  FIRST_NAME varchar(80),
+  LAST_NAME varchar(80),
+  PRIMARY KEY(ID, UNIVERSITY),
+  CONSTRAINT university_check CHECK(UNIVERSITY = 'Univ1' OR UNIVERSITY = 'Univ3')
 );
