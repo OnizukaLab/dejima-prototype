@@ -348,13 +348,13 @@ AS $$
         CREATE TEMPORARY TABLE __temp__Δ_ins_dejima_Osaka_Hosei ( LIKE public.dejima_Osaka_Hosei INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_Osaka_Hosei_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
-            __temp__Δ_ins_dejima_Osaka_Hosei DEFERRABLE INITIALLY DEFERRED 
+            __temp__Δ_ins_dejima_Osaka_Hosei DEFERRABLE INITIALLY IMMEDIATE 
             FOR EACH ROW EXECUTE PROCEDURE public.dejima_Osaka_Hosei_delta_action();
 
         CREATE TEMPORARY TABLE __temp__Δ_del_dejima_Osaka_Hosei ( LIKE public.dejima_Osaka_Hosei INCLUDING ALL ) WITH OIDS ON COMMIT DROP;
         CREATE CONSTRAINT TRIGGER __temp__dejima_Osaka_Hosei_trigger_delta_action
         AFTER INSERT OR UPDATE OR DELETE ON 
-            __temp__Δ_del_dejima_Osaka_Hosei DEFERRABLE INITIALLY DEFERRED 
+            __temp__Δ_del_dejima_Osaka_Hosei DEFERRABLE INITIALLY IMMEDIATE 
             FOR EACH ROW EXECUTE PROCEDURE public.dejima_Osaka_Hosei_delta_action();
     END IF;
     RETURN NULL;

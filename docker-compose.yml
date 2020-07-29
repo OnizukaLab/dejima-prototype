@@ -4,7 +4,7 @@ services:
     image: ekayim/dejima-postgres:latest
     container_name: Univ-db
     ports:
-        - 54321:5432
+        - 5432:5432
     volumes:
         - ./db/postgresql.conf:/etc/postgresql.conf
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh

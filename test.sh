@@ -1,6 +1,4 @@
-statements[0]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ1'), (2, 'FIRST', 'LAST', 'Univ1'), (3, 'FIRST', 'LAST', 'Univ1');"
-statements[1]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ2'), (2, 'FIRST', 'LAST', 'Univ2'), (3, 'FIRST', 'LAST', 'Univ2');"
-statements[2]="INSERT INTO student VALUES (1, 'FIRST', 'LAST', 'Univ3'), (2, 'FIRST', 'LAST', 'Univ3'), (3, 'FIRST', 'LAST', 'Univ3');"
+statements[0]="INSERT INTO student VALUES (1, 'Osaka', 'FIRST', 'LAST'), (2, 'Kyoto', 'FIRST', 'LAST'), (3, 'Hosei', 'FIRST', 'LAST');"
 
 for i in "${!statements[@]}"
 do
