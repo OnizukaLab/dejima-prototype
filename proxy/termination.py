@@ -5,9 +5,10 @@ import dejimautils
 import requests
 
 class Termination(object):
-    def __init__(self, db_conn_dict, child_peer_dict):
+    def __init__(self, db_conn_dict, child_peer_dict, dejima_config_dict):
         self.db_conn_dict = db_conn_dict
         self.child_peer_dict = child_peer_dict
+        self.dejima_config_dict = dejima_config_dict
 
     def on_post(self, req, resp):
         if req.content_length:
