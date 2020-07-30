@@ -1,72 +1,26 @@
 version: '3'
 services:
-  univ1-db:
+  univ-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Univ1-db
-    environment:
-        - PEER_NAME=Univ1
+    container_name: Univ-db
     ports:
-        - 54321:5432
+        - 5432:5432
     volumes:
         - ./db/postgresql.conf:/etc/postgresql.conf
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
-  univ1-proxy:
-    build: ./proxy
-    container_name: Univ1-proxy
-    command: python3 server.py
-    volumes:
-        - ./proxy:/code
-    ports:
-        - 8001:8000
-    depends_on:
-        - univ1-db
-    environment: 
-        - PEER_NAME=Univ1
+    environment:
+        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
 
-  univ2-db:
-    image: ekayim/dejima-postgres:latest
-    container_name: Univ2-db
-    environment:
-        - PEER_NAME=Univ2
-    ports:
-        - 54322:5432
-    volumes:
-        - ./db/postgresql.conf:/etc/postgresql.conf
-        - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
-        - ./db/setup_files:/etc/setup_files
-  univ2-proxy:
+  univ-proxy:
     build: ./proxy
-    container_name: Univ2-proxy
+    container_name: Univ-proxy
     command: python3 server.py
     volumes:
         - ./proxy:/code
     ports:
-        - 8002:8000
+        - 8000:8000
     depends_on:
-        - univ2-db
+        - univ-db
     environment: 
-        - PEER_NAME=Univ2
-  univ3-db:
-    image: ekayim/dejima-postgres:latest
-    container_name: Univ3-db
-    environment:
-        - PEER_NAME=Univ3
-    ports:
-        - 54323:5432
-    volumes:
-        - ./db/postgresql.conf:/etc/postgresql.conf
-        - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
-        - ./db/setup_files:/etc/setup_files
-  univ3-proxy:
-    build: ./proxy
-    container_name: Univ3-proxy
-    command: python3 server.py
-    volumes:
-        - ./proxy:/code
-    ports:
-        - 8003:8000
-    depends_on:
-        - univ3-db
-    environment: 
-        - PEER_NAME=Univ3
+        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)

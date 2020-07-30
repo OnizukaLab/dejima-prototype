@@ -2,14 +2,25 @@ import json
 import falcon
 from execution import Execution
 from termination import Termination
+from propagation import Propagation
+from addition import Addition
+from deletion import Deletion
+from getting_list import GettingList
 import os
 
-xid_list=[]
-db_conn_dict={}
+with open('dejima_config.json') as f:
+    dejima_config_dict = json.load(f)
 peer_name = os.environ['PEER_NAME']
+db_conn_dict={} # key: xid, value: database connection for each xid transaction.
+child_peer_dict = {} # key: xid, value: set of child peers for each xid transaction.
+
 app = falcon.API()
-app.add_route("/post_transaction", Execution(xid_list, peer_name, db_conn_dict))
-app.add_route("/terminate", Termination(xid_list, peer_name, db_conn_dict))
+app.add_route("/post_transaction", Execution(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/add_student", Addition(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/delete_student", Deletion(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/get_student_list", GettingList(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/_propagate", Propagation(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/_terminate_transaction", Termination(db_conn_dict, child_peer_dict, dejima_config_dict))
 
 if __name__ == "__main__":
     from wsgiref import simple_server

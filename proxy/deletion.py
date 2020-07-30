@@ -4,17 +4,15 @@ from psycopg2.extras import DictCursor
 import dejimautils
 import requests
 
-class Execution(object):
+class Deletion(object):
     def __init__(self, peer_name, db_conn_dict, child_peer_dict, dejima_config_dict):
         self.peer_name = peer_name
         self.db_conn_dict = db_conn_dict
         self.child_peer_dict = child_peer_dict
         self.dejima_config_dict = dejima_config_dict
 
-    def on_post(self, req, resp):
-        if req.content_length:
-            body = req.bounded_stream.read()
-            params = json.loads(body)
+    def on_get(self, req, resp):
+        params = req.params
 
         dt_list = list(self.dejima_config_dict['dejima_table'].keys())
         msg = {"result": "commit"}
@@ -54,15 +52,8 @@ class Execution(object):
             # execute transaction
             try:
                 query_results = {}
-                sql_statements = params['sql_statements']
-                for statement in sql_statements:
-                    if statement.startswith("SELECT"):
-                        statement.replace("SELECT", "SELECT FOR UPDATE")
-                        cur.execute(statement)
-                        query_results['{}'.format(cur.query)] = cur.fetchall()
-                    else:
-                        cur.execute(statement)
-                msg["query_results"] = query_results
+                statement = "DELETE FROM student WHERE id = '{}' AND university = '{}';".format(params['id'], params['university'])
+                cur.execute(statement)
             except psycopg2.Error as e:
                 print(e)
                 msg = {"result": "Failed (error in postgres)"}
@@ -71,6 +62,14 @@ class Execution(object):
                 db_conn.close()
                 del self.db_conn_dict[current_xid]
                 print("Original Tx: Failed (error in postgres) (xid={})".format(current_xid))
+                return
+            except Exception as e:
+                msg = {"result": "Failed (invalid parameter)"}
+                resp.body = json.dumps(msg)
+                db_conn.rollback()
+                db_conn.close()
+                del self.db_conn_dict[current_xid]
+                print("Original Tx: Failed (invalid parameter) (xid={})".format(current_xid))
                 return
     
             # propagation
