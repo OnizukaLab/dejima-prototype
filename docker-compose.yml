@@ -1,72 +1,76 @@
 version: '3'
 services:
-  univ1-db:
+  osaka-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Univ1-db
-    environment:
-        - PEER_NAME=Univ1
+    container_name: Osaka-db
     ports:
         - 54321:5432
     volumes:
         - ./db/postgresql.conf:/etc/postgresql.conf
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
-  univ1-proxy:
+    environment:
+        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
+
+  osaka-proxy:
     build: ./proxy
-    container_name: Univ1-proxy
+    container_name: Osaka-proxy
     command: python3 server.py
     volumes:
         - ./proxy:/code
     ports:
         - 8001:8000
     depends_on:
-        - univ1-db
+        - osaka-db
     environment: 
-        - PEER_NAME=Univ1
+        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
 
-  univ2-db:
+  kyoto-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Univ2-db
-    environment:
-        - PEER_NAME=Univ2
+    container_name: Kyoto-db
     ports:
         - 54322:5432
     volumes:
         - ./db/postgresql.conf:/etc/postgresql.conf
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
-  univ2-proxy:
+    environment:
+        - PEER_NAME=Kyoto # Replace with your university (Osaka/ Kyoto/ Hosei)
+
+  kyoto-proxy:
     build: ./proxy
-    container_name: Univ2-proxy
+    container_name: Kyoto-proxy
     command: python3 server.py
     volumes:
         - ./proxy:/code
     ports:
         - 8002:8000
     depends_on:
-        - univ2-db
+        - kyoto-db
     environment: 
-        - PEER_NAME=Univ2
-  univ3-db:
+        - PEER_NAME=Kyoto # Replace with your university (Osaka/ Kyoto/ Hosei)
+
+  hosei-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Univ3-db
-    environment:
-        - PEER_NAME=Univ3
+    container_name: Hosei-db
     ports:
         - 54323:5432
     volumes:
         - ./db/postgresql.conf:/etc/postgresql.conf
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
-  univ3-proxy:
+    environment:
+        - PEER_NAME=Hosei # Replace with your university (Osaka/ Kyoto/ Hosei)
+
+  hosei-proxy:
     build: ./proxy
-    container_name: Univ3-proxy
+    container_name: Hosei-proxy
     command: python3 server.py
     volumes:
         - ./proxy:/code
     ports:
         - 8003:8000
     depends_on:
-        - univ3-db
+        - hosei-db
     environment: 
-        - PEER_NAME=Univ3
+        - PEER_NAME=Hosei # Replace with your university (Osaka/ Kyoto/ Hosei)

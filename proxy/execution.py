@@ -83,7 +83,7 @@ class Execution(object):
                             if peer == self.peer_name:
                                 continue
                             child_peer_set.add(peer)
-                            url = "http://{}:8000/propagate".format(self.dejima_config_dict['peer_address'][peer])
+                            url = "http://{}:8000/_propagate".format(self.dejima_config_dict['peer_address'][peer])
                             headers = {"Content-Type": "application/json"}
                             data = {
                                 "xid": current_xid,
@@ -112,7 +112,7 @@ class Execution(object):
             del msg["query_results"]
             resp.body = json.dumps(msg)
             for child in child_peer_set:
-                url = "http://{}:8000/termination".format(self.dejima_config_dict['peer_address'][child])
+                url = "http://{}:8000/_terminate_transaction".format(self.dejima_config_dict['peer_address'][child])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
@@ -127,7 +127,7 @@ class Execution(object):
             msg["result"] = "commit"
             resp.body = json.dumps(msg)
             for child in child_peer_set:
-                url = "http://{}:8000/termination".format(self.dejima_config_dict['peer_address'][child])
+                url = "http://{}:8000/_terminate_transaction".format(self.dejima_config_dict['peer_address'][child])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,

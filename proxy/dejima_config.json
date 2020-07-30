@@ -1,11 +1,11 @@
 {
     "dejima_table": {
-        "dejima_1_2": ["Univ1", "Univ2"],
-        "dejima_1_3": ["Univ1", "Univ3"]
+        "dejima_osaka_kyoto": ["Osaka", "Kyoto"],
+        "dejima_osaka_hosei": ["Osaka", "Hosei"]
     },
     "peer_address": {
-        "Univ1": "Univ1-proxy",
-        "Univ2": "Univ2-proxy",
-        "Univ3": "Univ3-proxy"
+        "Osaka": "Osaka-proxy",
+        "Kyoto": "Kyoto-proxy",
+        "Hosei": "Hosei-proxy"
     }
 }
