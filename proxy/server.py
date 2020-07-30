@@ -3,6 +3,8 @@ import falcon
 from execution import Execution
 from termination import Termination
 from propagation import Propagation
+from addition import Addition
+from deletion import Deletion
 import os
 
 with open('dejima_config.json') as f:
@@ -13,6 +15,8 @@ child_peer_dict = {} # key: xid, value: set of child peers for each xid transact
 
 app = falcon.API()
 app.add_route("/post_transaction", Execution(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/add_student", Addition(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
+app.add_route("/delete_student", Deletion(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
 app.add_route("/_propagate", Propagation(peer_name, db_conn_dict, child_peer_dict, dejima_config_dict))
 app.add_route("/_terminate_transaction", Termination(db_conn_dict, child_peer_dict, dejima_config_dict))
 
