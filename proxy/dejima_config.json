@@ -4,8 +4,8 @@
         "dejima_osaka_hosei": ["Osaka", "Hosei"]
     },
     "peer_address": {
-        "Osaka": "murugan.bigdata-lab",
-        "Kyoto": "ushas.bigdata-lab",
-        "Hosei": "indra.bigdata-lab"
+        "Osaka": "murugan.bigdata-lab:443",
+        "Kyoto": "ushas.bigdata-lab:443",
+        "Hosei": "indra.bigdata-lab:443"
     }
 }

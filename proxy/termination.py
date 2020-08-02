@@ -22,7 +22,7 @@ class Termination(object):
 
         if params['result'] == "commit":
             for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}:8000/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
+                url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
@@ -35,7 +35,7 @@ class Termination(object):
             db_conn.commit()
         elif params['result'] == "abort":
             for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}:8000/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
+                url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
                 headers = {"Content-Type": "application/json"}
                 data = {
                     "xid": current_xid,
