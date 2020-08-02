@@ -1,1 +1,0 @@
-curl -v -X POST -H "Content-Type:application/json" -d "{\"transaction_type\":\"original\", \"sql_statements\":[\"UPDATE student SET first_name='UPDATED' WHERE first_name='FIRST';\"]}" localhost:8001/post_transaction

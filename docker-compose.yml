@@ -1,5 +1,15 @@
 version: '3'
 services:
+  univ-nginx:
+    image: nginx
+    container_name: Univ-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 443:443
+    depends_on:
+      - univ-proxy
+
   univ-db:
     image: ekayim/dejima-postgres:latest
     container_name: Univ-db
@@ -13,9 +23,9 @@ services:
         - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
 
   univ-proxy:
-    build: ./proxy
+    image: ekayim/dejima-proxy:latest
     container_name: Univ-proxy
-    command: python3 server.py
+    command: gunicorn -b 0.0.0.0:8000 server:app
     volumes:
         - ./proxy:/code
     ports:
