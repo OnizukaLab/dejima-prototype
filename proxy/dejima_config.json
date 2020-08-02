@@ -4,8 +4,8 @@
         "dejima_osaka_hosei": ["Osaka", "Hosei"]
     },
     "peer_address": {
-        "Osaka": "Osaka-proxy",
-        "Kyoto": "Kyoto-proxy",
-        "Hosei": "Hosei-proxy"
+        "Osaka": "Osaka-nginx:443",
+        "Kyoto": "Kyoto-nginx:443",
+        "Hosei": "Hosei-nginx:443"
     }
 }
