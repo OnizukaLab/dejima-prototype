@@ -108,7 +108,6 @@ class Deletion(object):
         # if not all results is "Success", then send "abort" to childs, and db_conn.close()
         # if all results is "Success", then send "commit" to childs. and db_conn.close()
         if msg["result"] != "commit":
-            del msg["query_results"]
             resp.body = json.dumps(msg)
             for child in child_peer_set:
                 url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][child])

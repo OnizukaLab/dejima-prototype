@@ -4,8 +4,8 @@
         "dejima_osaka_hosei": ["Osaka", "Hosei"]
     },
     "peer_address": {
-        "Osaka": "murugan.bigdata-lab:443",
-        "Kyoto": "ushas.bigdata-lab:443",
-        "Hosei": "indra.bigdata-lab:443"
+        "Osaka": "di-m.ist.osaka-u.ac.jp:443",
+        "Kyoto": "FQDN or XXX.XXX.XXX.XXX:port",
+        "Hosei": "FQDN or XXX.XXX.XXX.XXX:port"
     }
 }
