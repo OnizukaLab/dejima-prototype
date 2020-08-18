@@ -3,7 +3,7 @@ Dejima Prototype is implemented as API server.
 
 ## Definition of base tables and dejima tables (Setting of this demo)
 In this demo, there are three peers: Osaka University, Kyoto University, Hosei University.  
-All peer have a common base table, named "student".  
+Each peer have a common base table, named "student".  
 The "student" table is as follows:
 ```sql
 CREATE TABLE student (
@@ -27,8 +27,30 @@ In addition, there are constraints as follows:
 3. In Hosei University, "UNIVERSITY" attribute of records is one of Osaka or Hosei.
 
 ## How to build
-You can build Dejima proxy server and postgreSQL just by executing `docker-compose up`.
-This API server accept requests at 443 port.
+You can build this api server just by executing `docker-compose up`.  
+`docker-compose up` command builds three containers:
+- Nginx   
+Reverse Proxy. Port=433. Service name='univ-nginx'.
+- falcon + gunicorn  
+API server. Port=8000. Service name='univ-proxy'
+- PostgreSQL  
+DB. Port=5432. Service name='univ-db'
+
+This API server use http **without SSL**, but this server accepts requests at **443 port**.
+If you already use some reverse proxy, you can build only two containers on the bottom, just by executing `docker-compose up univ-db univ-proxy`
+
+## Configuration files
+- docker-compose.yml  
+A configuration file for container orchestration.  
+Please set the peer name for 'univ-db' and 'univ-proxy' as a environment variable.
+
+- proxy/dejima_config.json  
+A configuration file for proxy.  
+Please set the peer address.
+
+- nginx/nginx.conf  
+A configuration file for nginx.  
+Please set IP address restriction.
 
 ## How to call api
 ### 1. Posting an arbitary transaction (POST /post_transaction)
