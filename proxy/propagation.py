@@ -91,7 +91,7 @@ class Propagation(object):
                                 print(e)
                                 msg["result"] = "Failed (Child server is not found)"
                                 resp.body = json.dumps(msg)
-                                break
+                                return
                         else:
                             continue
                         break
