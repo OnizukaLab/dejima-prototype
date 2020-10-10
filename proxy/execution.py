@@ -91,7 +91,7 @@ class Execution(object):
                                 "sql_statements": delta
                             }
                             try:
-                                res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
+                                res = requests.post(url, json.dumps(data), headers=headers)
                                 result = res.json()['result']
                                 self.child_peer_dict[current_xid] = child_peer_set
                                 if result != "Success":
