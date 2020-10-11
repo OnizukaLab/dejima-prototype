@@ -93,7 +93,7 @@ class Addition(object):
                                 res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
                                 result = res.json()['result']
                                 self.child_peer_dict[current_xid] = child_peer_set
-                                if result != "Success":
+                                if result != "ack":
                                     msg["result"] = "Failed (Child error)"
                                     resp.body = json.dumps(msg)
                             except Exception as e:
@@ -105,8 +105,8 @@ class Addition(object):
                             continue
                         break
 
-        # if not all results is "Success", then send "abort" to childs, and db_conn.close()
-        # if all results is "Success", then send "commit" to childs. and db_conn.close()
+        # if not all results is "ack", then send "abort" to childs, and db_conn.close()
+        # if all results is "ack", then send "commit" to childs. and db_conn.close()
         if msg["result"] != "commit":
             resp.body = json.dumps(msg)
             for child in child_peer_set:

@@ -18,96 +18,78 @@ class Execution(object):
 
         dt_list = list(self.dejima_config_dict['dejima_table'].keys())
         msg = {"result": "commit"}
-        xid_list = self.db_conn_dict.keys()
         current_xid = ""
-        sql_statements = []
         child_peer_set = set([])
 
         # ----- connect to postgreSQL -----
-        try:
-            db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
-        except Exception as e:
-            msg = {"result": "Failed (cannot connect PostgreSQL)"}
-            resp.body = json.dumps(msg)
-            print("Original Tx: Failed (cannot connect PostgreSQL) (xid=not assigned)")
-            return
+        db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
 
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
             # note: psycopg2 doesn't need BEGIN statement. Transaction is valid as default.
 
             # get original TX's current_xid
-            try:
-                cur.execute("SELECT txid_current();")
-                xid, *_ = cur.fetchone()
-                current_xid = "{}_{}".format(self.peer_name, xid)
-                self.db_conn_dict[current_xid] = None
-                self.child_peer_dict[current_xid] = []
-            except psycopg2.Error as e:
-                print(e)
-                msg = {"result": "Failed (cannot begin transaction"}
-                resp.body = json.dumps(msg)
-                db_conn.rollback()
-                db_conn.close()
-                print("Original Tx: Failed (cannot begin Tx) (xid=not assigned)")
-                return
+            cur.execute("SELECT txid_current();")
+            xid, *_ = cur.fetchone()
+            current_xid = "{}_{}".format(self.peer_name, xid)
+            self.db_conn_dict[current_xid] = None # no need to pool db_connection for root peer.
+            self.child_peer_dict[current_xid] = []
+            sql_stmts = params['sql_statements']
+            query_results = {}
         
             # execute transaction
             try:
-                query_results = {}
-                sql_statements = params['sql_statements']
-                for statement in sql_statements:
-                    if statement.startswith("SELECT"):
-                        statement.replace("SELECT", "SELECT FOR UPDATE")
-                        cur.execute(statement)
+                lock_stmts = dejimautils.convert_to_lock_stmts(sql_stmts)
+                for stmt in lock_stmts:
+                    print(stmt)
+                    cur.execute(stmt)
+                for stmt in sql_stmts:
+                    cur.execute(stmt)
+                    if stmt.startswith("SELECT"):
                         query_results['{}'.format(cur.query)] = cur.fetchall()
-                    else:
-                        cur.execute(statement)
                 msg["query_results"] = query_results
             except psycopg2.Error as e:
                 print(e)
-                msg = {"result": "Failed (error in postgres)"}
+                msg = {"result": "Failed in local Tx execution"}
                 resp.body = json.dumps(msg)
                 db_conn.rollback()
                 db_conn.close()
                 del self.db_conn_dict[current_xid]
-                print("Original Tx: Failed (error in postgres) (xid={})".format(current_xid))
                 return
-    
+
             # propagation
             for dt in dt_list:
-                if self.peer_name in self.dejima_config_dict['dejima_table'][dt]:
-                    cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
-                    delta, *_ = cur.fetchone()
-                    if delta != None:
-                        for peer in self.dejima_config_dict['dejima_table'][dt]:
-                            if peer == self.peer_name:
-                                continue
-                            child_peer_set.add(peer)
-                            url = "http://{}/_propagate".format(self.dejima_config_dict['peer_address'][peer])
-                            headers = {"Content-Type": "application/json"}
-                            data = {
-                                "xid": current_xid,
-                                "dejima_table": dt,
-                                "sql_statements": delta
-                            }
-                            try:
-                                res = requests.post(url, json.dumps(data), headers=headers)
-                                result = res.json()['result']
-                                self.child_peer_dict[current_xid] = child_peer_set
-                                if result != "Success":
-                                    msg["result"] = "Failed (Child error)"
-                                    resp.body = json.dumps(msg)
-                            except Exception as e:
-                                print(e)
-                                msg["result"] = "Failed (Child server is not found)"
-                                resp.body = json.dumps(msg)
-                                break
-                        else:
+                cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
+                delta, *_ = cur.fetchone()
+                if delta != None:
+                    for peer in self.dejima_config_dict['dejima_table'][dt]:
+                        if peer == self.peer_name:
                             continue
-                        break
+                        child_peer_set.add(peer)
+                        url = "http://{}/_propagate".format(self.dejima_config_dict['peer_address'][peer])
+                        headers = {"Content-Type": "application/json"}
+                        data = {
+                            "xid": current_xid,
+                            "dejima_table": dt,
+                            "sql_statements": delta
+                        }
+                        try:
+                            res = requests.post(url, json.dumps(data), headers=headers)
+                            result = res.json()['result']
+                            self.child_peer_dict[current_xid] = child_peer_set
+                            if result != "ack":
+                                msg["result"] = "Failed in a child server"
+                                resp.body = json.dumps(msg)
+                        except Exception as e:
+                            print(e)
+                            msg["result"] = "Failed to connect a child server"
+                            resp.body = json.dumps(msg)
+                            break
+                    else:
+                        continue
+                    break
 
-        # if not all results is "Success", then send "abort" to childs, and db_conn.close()
-        # if all results is "Success", then send "commit" to childs. and db_conn.close()
+        # if not all results is "ack", then send "abort" to childs, and db_conn.close()
+        # if all results is "ack", then send "commit" to childs. and db_conn.close()
         if msg["result"] != "commit":
             del msg["query_results"]
             resp.body = json.dumps(msg)
@@ -119,12 +101,11 @@ class Execution(object):
                     "result": "abort"
                 }
                 try:
-                    res = requests.post(url, json.dumps(data), headers=headers, timeout=(1.0, 1.0))
+                    res = requests.post(url, json.dumps(data), headers=headers)
                 except Exception as e:
                     continue
             db_conn.close()
         else:
-            msg["result"] = "commit"
             resp.body = json.dumps(msg)
             for child in child_peer_set:
                 url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][child])
@@ -140,5 +121,4 @@ class Execution(object):
             db_conn.commit()
             db_conn.close()
         
-
         del self.db_conn_dict[current_xid]

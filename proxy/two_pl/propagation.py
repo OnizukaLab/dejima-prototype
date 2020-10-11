@@ -17,47 +17,41 @@ class Propagation(object):
             params = json.loads(body)
 
         dt_list = list(self.dejima_config_dict['dejima_table'].keys())
-        msg = {"result": "commit"}
+        msg = {"result": "ack"}
         xid_list = self.db_conn_dict.keys()
         current_xid = ""
-        sql_statements = []
+        sql_stmts = []
         child_peer_set = set([])
 
         # ----- xid check -----
         if params['xid'] in xid_list:
-            msg = {"result": "Failed (loop detection)"}
+            msg = {"result": "Failed for loop detection"}
             resp.body = json.dumps(msg)
-            print("Propagated Tx: Failed (loop detection) (xid={})".format(params['xid']))
             return
         else:
             current_xid = params['xid']
             self.db_conn_dict[current_xid] = None
-            _, sql_statements = dejimautils.convert_to_sql_from_json(params['sql_statements'])
+            _, sql_stmts = dejimautils.convert_to_sql_from_json(params['sql_statements'])
             self.child_peer_dict[current_xid] = []
             
         # ----- connect to postgreSQL -----
-        try:
-            db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
-        except Exception as e:
-            msg = {"result": "Failed (cannot connect PostgreSQL)"}
-            resp.body = json.dumps(msg)
-            print("Propagated Tx: Failed (cannot connect PostgreSQL) (xid={})".format(current_xid))
-            return
+        db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
 
         # ----- execute transaction -----
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
             # save connection to database
             self.db_conn_dict[current_xid] = db_conn
-
             try:
-                for statement in sql_statements:
-                    cur.execute(statement)
+                lock_stmts = dejimautils.convert_to_lock_stmts(sql_stmts)
+                for stmt in lock_stmts:
+                    cur.execute(stmt)
+                for stmt in sql_stmts:
+                    cur.execute(stmt)
             except psycopg2.Error as e:
                 print(e)
-                msg = {"result": "Failed (error in postgres)"}
+                msg = {"result": "Failed in local Tx execution"}
                 resp.body = json.dumps(msg)
                 db_conn.rollback()
-                print("Propagated Tx: Failed (error in postgres) (xid={})".format(current_xid))
                 return
 
             # ----- propagation -----
@@ -82,21 +76,19 @@ class Propagation(object):
                                 res = requests.post(url, json.dumps(data), headers=headers)
                                 result = res.json()['result']
                                 self.child_peer_dict[current_xid] = child_peer_set
-                                if result != "Success":
-                                    msg["result"] = "Failed (Child error)"
+                                if result != "ack":
+                                    msg["result"] = "Failed in a child server"
                                     resp.body = json.dumps(msg)
-                                    print("Propagated Tx: Failed (child error) (xid={})".format(current_xid))
-                                    return
+                                    break
                             except Exception as e:
                                 print(e)
-                                msg["result"] = "Failed (Child server is not found)"
+                                msg["result"] = "Failed to connect a child server"
                                 resp.body = json.dumps(msg)
-                                return
+                                break
                         else:
                             continue
                         break
 
-        # send "Success" and exit
-        msg["result"] = "Success"
+        # send "ack" and exit
         resp.body = json.dumps(msg)
         return

@@ -50,5 +50,5 @@ class Termination(object):
 
         if db_conn != None:
             db_conn.close()
-        msg["result"] = "Success"
+        msg["result"] = "ack"
         resp.body = json.dumps(msg)

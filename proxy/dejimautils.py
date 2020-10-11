@@ -1,4 +1,5 @@
 import json
+import sqlparse
 
 def convert_to_sql_from_json(json_data):
     # arg : json_data from other peer
@@ -28,5 +29,29 @@ def convert_to_sql_from_json(json_data):
         values = values[0:-2] + ")"
         sql_statements.append("INSERT INTO {} {} VALUES {};".format(json_dict["view"], columns, values))
 
-
     return json_dict["view"], sql_statements
+
+def convert_to_lock_stmts(sql_stmts):
+    ret_stmts = []
+    for stmt in sql_stmts:
+        stmt = sqlparse.format(stmt, keyword_case="upper")
+        if stmt.startswith("SELECT"):
+            stmt = stmt + " FOR SHARE"
+        elif stmt.startswith("UPDATE"):
+            parsed_stmt = sqlparse.parse(stmt)
+            where_clause = ""
+            for token in parsed_stmt[0]:
+                if type(token) == sqlparse.sql.Where: where_clause=token.value; break
+            table_name = parsed_stmt[0][2].value if parsed_stmt[0][2].value != "ONLY" else parsed_stmt[0][4].value
+            stmt = "SELECT * FROM {} {} FOR UPDATE".format(table_name, where_clause)
+        else:
+            continue
+        ret_stmts.append(stmt)
+
+    return ret_stmts
+        
+def convert_to_oid_rwset_from_sql(sql_statements):
+    for statement in sql_statements:
+        if statement.startwith("SELECT"):
+            pass
+    pass
