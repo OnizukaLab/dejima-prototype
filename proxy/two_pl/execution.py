@@ -58,6 +58,7 @@ class Execution(object):
 
             # propagation
             for dt in dt_list:
+                if self.peer_name not in self.dejima_config_dict['dejima_table'][dt]: continue
                 cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
                 delta, *_ = cur.fetchone()
                 if delta != None:
