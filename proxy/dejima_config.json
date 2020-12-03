@@ -1,11 +1,13 @@
 {
     "dejima_table": {
-        "dejima_osaka_kyoto": ["Osaka", "Kyoto"],
-        "dejima_osaka_hosei": ["Osaka", "Hosei"]
+        "jcustomer": ["PeerA", "PeerB"]
+    },
+    "base_table": {
+        "PeerA": ["customer", "nation"],
+        "PeerB": ["customer"]
     },
     "peer_address": {
-        "Osaka": "Osaka-nginx:443",
-        "Kyoto": "Kyoto-nginx:443",
-        "Hosei": "Hosei-nginx:443"
+        "PeerA": "PeerA-nginx:443",
+        "PeerB": "PeerB-nginx:443"
     }
 }

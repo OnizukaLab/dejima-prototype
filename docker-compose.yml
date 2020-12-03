@@ -1,19 +1,19 @@
 version: '3'
 services:
-  osaka-nginx:
+  peera-nginx:
     image: nginx
-    container_name: Osaka-nginx
+    container_name: PeerA-nginx
     volumes:
-      - ./nginx/Osaka/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/PeerA/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 444:443
     networks:
         dejima_net:
             ipv4_address: 172.30.0.2
 
-  osaka-db:
+  peera-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Osaka-db
+    container_name: PeerA-db
     ports:
         - 54321:5432
     volumes:
@@ -21,41 +21,41 @@ services:
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
     environment:
-        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=PeerA 
     networks:
         dejima_net:
             ipv4_address: 172.30.0.3
 
-  osaka-proxy:
+  peera-proxy:
     image: ekayim/dejima-proxy:latest
-    container_name: Osaka-proxy
+    container_name: PeerA-proxy
     command: gunicorn -b 0.0.0.0:8000 server:app
     volumes:
         - ./proxy:/code
     ports:
         - 8001:8000
     depends_on:
-        - osaka-db
+        - peera-db
     environment: 
-        - PEER_NAME=Osaka # Replace with your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=PeerA 
     networks:
         dejima_net:
             ipv4_address: 172.30.0.4
 
-  kyoto-nginx:
+  peerb-nginx:
     image: nginx
-    container_name: Kyoto-nginx
+    container_name: PeerB-nginx
     volumes:
-      - ./nginx/Kyoto/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/PeerB/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 445:443
     networks:
         dejima_net:
             ipv4_address: 172.30.0.5
-            
-  kyoto-db:
+
+  peerb-db:
     image: ekayim/dejima-postgres:latest
-    container_name: Kyoto-db
+    container_name: PeerB-db
     ports:
         - 54322:5432
     volumes:
@@ -63,68 +63,26 @@ services:
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
     environment:
-        - PEER_NAME=Kyoto # Replace with your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=PeerB 
     networks:
         dejima_net:
             ipv4_address: 172.30.0.6
 
-  kyoto-proxy:
+  peerb-proxy:
     image: ekayim/dejima-proxy:latest
-    container_name: Kyoto-proxy
+    container_name: PeerB-proxy
     command: gunicorn -b 0.0.0.0:8000 server:app
     volumes:
         - ./proxy:/code
     ports:
         - 8002:8000
     depends_on:
-        - kyoto-db
+        - peerb-db
     environment: 
-        - PEER_NAME=Kyoto # Replace with your university (Osaka/ Kyoto/ Hosei)
+        - PEER_NAME=PeerB 
     networks:
         dejima_net:
             ipv4_address: 172.30.0.7
-
-  hosei-nginx:
-    image: nginx
-    container_name: Hosei-nginx
-    volumes:
-      - ./nginx/Hosei/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - 446:443
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.8
-
-  hosei-db:
-    image: ekayim/dejima-postgres:latest
-    container_name: Hosei-db
-    ports:
-        - 54323:5432
-    volumes:
-        - ./db/postgresql.conf:/etc/postgresql.conf
-        - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
-        - ./db/setup_files:/etc/setup_files
-    environment:
-        - PEER_NAME=Hosei # Replace with your university (Osaka/ Kyoto/ Hosei)
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.9
-
-  hosei-proxy:
-    image: ekayim/dejima-proxy:latest
-    container_name: Hosei-proxy
-    command: gunicorn -b 0.0.0.0:8000 server:app
-    volumes:
-        - ./proxy:/code
-    ports:
-        - 8003:8000
-    depends_on:
-        - hosei-db
-    environment: 
-        - PEER_NAME=Hosei # Replace with your university (Osaka/ Kyoto/ Hosei)
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.10
 
 networks:
   dejima_net:
