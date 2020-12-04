@@ -27,8 +27,8 @@ class Lock(object):
                 for bt in bt_list:
                     for lineage in lineages:
                         cur.execute("SELECT * FROM {}_lineage WHERE lineage LIKE '%{}%' FOR UPDATE".format(bt, lineage))
-                    # cur.execute("SELECT * FROM pgrowlocks('{}_lineage')".format(bt))
-                    # print(cur.fetchall())
+                    cur.execute("SELECT * FROM pgrowlocks('{}_lineage')".format(bt))
+                    print(cur.fetchall())
                 msg = {"result": "Ack"}
             except Exception:
                 msg = {"result": "Nak"}

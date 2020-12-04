@@ -84,6 +84,47 @@ services:
         dejima_net:
             ipv4_address: 172.30.0.7
 
+  peerc-nginx:
+    image: nginx
+    container_name: PeerC-nginx
+    volumes:
+      - ./nginx/PeerC/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 446:443
+    networks:
+        dejima_net:
+            ipv4_address: 172.30.0.8
+
+  peerc-db:
+    image: ekayim/dejima-postgres:latest
+    container_name: PeerC-db
+    ports:
+        - 54323:5432
+    volumes:
+        - ./db/postgresql.conf:/etc/postgresql.conf
+        - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
+        - ./db/setup_files:/etc/setup_files
+    environment:
+        - PEER_NAME=PeerC 
+    networks:
+        dejima_net:
+            ipv4_address: 172.30.0.9
+
+  peerc-proxy:
+    image: ekayim/dejima-proxy:latest
+    container_name: PeerC-proxy
+    command: gunicorn -b 0.0.0.0:8000 server:app
+    volumes:
+        - ./proxy:/code
+    ports:
+        - 8003:8000
+    depends_on:
+        - peerc-db
+    environment: 
+        - PEER_NAME=PeerC 
+    networks:
+        dejima_net:
+            ipv4_address: 172.30.0.10
 networks:
   dejima_net:
     driver: bridge

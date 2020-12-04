@@ -16,6 +16,7 @@ class Propagation(object):
             body = req.bounded_stream.read()
             params = json.loads(body)
 
+        print("Accepted data: ", params)
         msg = {}
         current_xid = ""
         BASE_TABLE = "customer"
@@ -47,9 +48,11 @@ class Propagation(object):
                 cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
                 delta, *_ = cur.fetchone()
                 if delta != None:
-                    target_peers = self.dejima_config_dict['dejima_table'][dt]
+                    target_peers = list(self.dejima_config_dict['dejima_table'][dt])
                     target_peers.remove(self.peer_name)
-                    result = dejimautils.prop_request(target_peers, dt, delta, current_xid, self.dejima_config_dict)
+                    print("before prop_request, target_peers", target_peers)
+                    result = dejimautils.prop_request(target_peers, dt, delta, inserted_lineages, deleted_lineages, current_xid, self.dejima_config_dict)
+                    print("after prop_request")
                     if result != "Ack":
                         msg = {"result": "Nak"}
                         break

@@ -33,6 +33,8 @@ class Execution(object):
             lineages =  []
             inserted_lineages = []
             deleted_lineages = []
+            inserted_lineages_for_local = []
+            deleted_lineages_for_local = []
             query_results = {}
             for stmt in params['sql_statements']:
                 # where clause extract
@@ -68,7 +70,11 @@ class Execution(object):
                 elif stmt.startswith("INSERT"):
                     cur.execute(stmt + " RETURNING key")
                     for key in cur.fetchall():
-                        inserted_lineages.append("({}, '<{},{},{}>')".format(key[0], self.peer_name, BASE_TABLE, key[0]))
+                        inserted_lineages_for_local.append("({}, '<{},{},{}>')".format(key[0], self.peer_name, BASE_TABLE, key[0]))
+                        if self.peer_name == "PeerA":
+                            inserted_lineages.append("({}, '<{},{},{}><PeerA,nation,1>')".format(key[0], self.peer_name, BASE_TABLE, key[0]))
+                        else:
+                            inserted_lineages.append("({}, '<{},{},{}>')".format(key[0], self.peer_name, BASE_TABLE, key[0]))
 
                 elif stmt.startswith("DELETE"):
                     cur.execute(stmt + " RETURNING key")
@@ -80,10 +86,11 @@ class Execution(object):
                 where_clause = "WHERE " +  ' OR '.join(['key={}'.format(key) for key in deleted_lineages])
                 cur.execute("DELETE FROM {}_lineage {}".format(BASE_TABLE, where_clause))
             if inserted_lineages != []:
-                values_clause = "VALUES " + ', '.join(inserted_lineages)
+                values_clause = "VALUES " + ', '.join(inserted_lineages_for_local)
                 cur.execute("INSERT INTO {}_lineage {}".format(BASE_TABLE, values_clause))
 
             # lock records in other peers with lineages
+            print("lock phase")
             all_peers = list(self.dejima_config_dict['peer_address'].keys())
             all_peers.remove(self.peer_name)
             result = dejimautils.lock_request_with_lineage(all_peers, lineages, current_xid, self.dejima_config_dict)
@@ -104,7 +111,7 @@ class Execution(object):
                 cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
                 delta, *_ = cur.fetchone()
                 if delta != None:
-                    target_peers = self.dejima_config_dict['dejima_table'][dt]
+                    target_peers = list(self.dejima_config_dict['dejima_table'][dt])
                     target_peers.remove(self.peer_name)
                     propagated_peers.extend(target_peers)
                     result = dejimautils.prop_request(target_peers, dt, delta, inserted_lineages, deleted_lineages, current_xid, self.dejima_config_dict)
@@ -113,12 +120,13 @@ class Execution(object):
                         break
             
             # termination 
+            print("termination phase")
             if commit:
-                dejimautils.termination_request(propagated_peers, "commit", current_xid, self.dejima_config_dict)
+                dejimautils.termination_request(all_peers, "commit", current_xid, self.dejima_config_dict)
                 msg = {"result": "commit"}
                 db_conn.commit()
             else:
-                dejimautils.termination_request(propagated_peers, "abort", current_xid, self.dejima_config_dict)
+                dejimautils.termination_request(all_peers, "abort", current_xid, self.dejima_config_dict)
                 msg = {"result": "abort"}
                 db_conn.rollback()
 

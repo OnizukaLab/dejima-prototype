@@ -2,15 +2,14 @@ CREATE EXTENSION pgrowlocks;
 
 CREATE TABLE customer (
 	KEY		SERIAL,
-	NAME	CHAR(25),
-	ADDRESS		VARCHAR(152)
+	NAME	CHAR(25)
 );
 
 ALTER TABLE customer ADD PRIMARY KEY (KEY);
 
 \echo 'LOADING customer'
 INSERT INTO customer VALUES 
-(1,'A','Tokyo');
+(1,'A');
 
 CREATE TABLE CUSTOMER_LINEAGE (
 	KEY		INT,
