@@ -16,21 +16,26 @@ class Termination(object):
             body = req.bounded_stream.read()
             params = json.loads(body)
 
+        msg = {"result": "Ack"}
         if params['result'] == "commit":
             commit = True
         else:
             commit = False
         current_xid = params['xid']
-        db_conn = self.tx_management_dict[current_xid]['db_conn']
-        with db_conn.cursor(cursor_factory=DictCursor) as cur:
-            # termination 
-            if commit:
-                db_conn.commit()
-                msg = {"result": "Ack"}
-            else:
-                db_conn.rollback()
-                msg = {"result": "Nak"}
+        try:
+            db_conn = self.tx_management_dict[current_xid]['db_conn']
+            with db_conn.cursor(cursor_factory=DictCursor) as cur:
+                # termination 
+                if commit:
+                    db_conn.commit()
+                    msg = {"result": "Ack"}
+                else:
+                    db_conn.rollback()
+                    msg = {"result": "Nak"}
+            del self.tx_management_dict[current_xid]
+            self.connection_pool.putconn(db_conn)
+        except Exception:
+            pass
 
         resp.body = json.dumps(msg)
-        del self.tx_management_dict[current_xid]
         return
