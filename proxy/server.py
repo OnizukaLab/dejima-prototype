@@ -2,6 +2,8 @@ import json
 import falcon
 import os
 import psycopg2.pool
+import sys
+sys.dont_write_bytecode = True
 
 with open('dejima_config.json') as f:
     dejima_config_dict = json.load(f)
@@ -36,11 +38,15 @@ if (METHOD=="2PL"):
     app.add_route("/_terminate_transaction", Termination(db_conn_dict, child_peer_dict, dejima_config_dict))
 elif (METHOD=="FRS_broadcast"):
     from frs_broadcast.execution import Execution
-    from frs_broadcast.termination import Termination
+    from frs_broadcast.test import Test
     from frs_broadcast.propagation import Propagation
-    app.add_route("/post_transaction", Execution(peer_name, tx_management_dict, dejima_config_dict))
+    from frs_broadcast.termination import Termination
+    from frs_broadcast.lock import Lock
+    app.add_route("/post_transaction", Execution(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
+    app.add_route("/_test", Test(peer_name, tx_management_dict, dejima_config_dict))
     app.add_route("/_propagate", Propagation(peer_name, tx_management_dict, dejima_config_dict))
-    app.add_route("/_terminate_transaction", Termination(tx_management_dict, dejima_config_dict))
+    app.add_route("/_terminate", Termination(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
+    app.add_route("/_lock", Lock(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
 elif (METHOD=="FRS"):
     from frs.execution import Execution
     from frs.termination import Termination
@@ -52,15 +58,13 @@ elif (METHOD=="FRS"):
     app.add_route("/_lock", Lock(tx_management_dict, dejima_config_dict))
 elif (METHOD=="dev"):
     from dev.execution import Execution
-    app.add_route("/post_transaction", Execution(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
-    from dev.test import Test
-    app.add_route("/_test", Test(peer_name, tx_management_dict, dejima_config_dict))
     from dev.propagation import Propagation
-    app.add_route("/_propagate", Propagation(peer_name, tx_management_dict, dejima_config_dict))
     from dev.termination import Termination
-    app.add_route("/_terminate", Termination(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
-    from dev.lock import Lock
-    app.add_route("/_lock", Lock(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
+    from dev.test import Test
+    app.add_route("/execute", Execution(peer_name, tx_management_dict, dejima_config_dict))
+    app.add_route("/_propagate", Propagation(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
+    app.add_route("/terminate", Termination(peer_name, tx_management_dict, dejima_config_dict, connection_pool))
+    app.add_route("/_test", Test(peer_name, tx_management_dict, dejima_config_dict))
 
 if __name__ == "__main__":
     from wsgiref import simple_server

@@ -28,7 +28,7 @@ def lock_request_with_lineage(peers, lineages, current_xid, dejima_config_dict):
     else:
         return "Nak"
 
-def prop_request(peers, dt, delta, inserted_lineages, deleted_lineages, current_xid, dejima_config_dict):
+def prop_request(peers, dt, delta, current_xid, dejima_config_dict):
     thread_list = []
     results = []
     for peer in peers:
@@ -36,8 +36,6 @@ def prop_request(peers, dt, delta, inserted_lineages, deleted_lineages, current_
             "xid": current_xid,
             "dejima_table": dt,
             "delta": delta,
-            "inserted_lineages": inserted_lineages,
-            "deleted_lineages": deleted_lineages
         }
         url = "http://{}/_propagate".format(dejima_config_dict['peer_address'][peer])
         thread = threading.Thread(target=base_request, args=([url, data, results]))
@@ -62,7 +60,7 @@ def termination_request(peers, result, current_xid, dejima_config_dict):
             "xid": current_xid,
             "result": result
         }
-        url = "http://{}/_terminate".format(dejima_config_dict['peer_address'][peer])
+        url = "http://{}/terminate".format(dejima_config_dict['peer_address'][peer])
         thread = threading.Thread(target=base_request, args=([url, data, results]))
         thread_list.append(thread)
     
@@ -93,7 +91,8 @@ def convert_to_sql_from_json(json_data):
     # arg : json_data from other peer
     # output : view name(str) , sql statements for view(str)
     sql_statements = []
-    json_dict = json.loads(json_data)
+    json_dict = json_data
+    # json_dict = json.loads(json_data)
 
     for delete in json_dict["deletions"]:
         where = ""

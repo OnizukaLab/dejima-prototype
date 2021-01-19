@@ -1,12 +1,12 @@
 {
     "dejima_table": {
-        "jcustomer": ["PeerA", "PeerB"],
-        "another_dejima_view": ["PeerB", "PeerC"]
+        "dejima_a_b": ["PeerA", "PeerB"],
+        "dejima_b_c": ["PeerB", "PeerC"]
     },
     "base_table": {
-        "PeerA": ["customer", "nation"],
-        "PeerB": ["customer"],
-        "PeerC": ["customer"]
+        "PeerA": ["bt"],
+        "PeerB": ["bt"],
+        "PeerC": ["bt"]
     },
     "peer_address": {
         "PeerA": "PeerA-nginx:443",

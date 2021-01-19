@@ -19,3 +19,13 @@ class Test(object):
         msg = {"result": "Ack"}
         resp.body = json.dumps(msg)
         return
+    
+    def on_get(self, req, resp):
+        if req.content_length:
+            body = req.bounded_stream.read()
+            params = json.loads(body)
+
+        print("tx_management_dict:", self.tx_management_dict)
+        msg = {"result": "Ack"}
+        resp.body = json.dumps(msg)
+        return

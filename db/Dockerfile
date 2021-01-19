@@ -1,4 +1,7 @@
-FROM postgres:11.2-alpine
+FROM mypg:11.2-alpine
+# FROM postgres:11.2-alpine
+# FROM postgres:11-alpine
+
 LABEL maintaner "miyake <miyake.kouta@ist.osaka-u.ac.jp>"
 
 RUN apk add --update --no-cache \
