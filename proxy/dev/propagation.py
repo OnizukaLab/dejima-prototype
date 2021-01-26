@@ -13,7 +13,6 @@ class Propagation(object):
         self.connection_pool = connection_pool
 
     def on_post(self, req, resp):
-        print("/propagate start")
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
@@ -28,7 +27,6 @@ class Propagation(object):
             return
         self.tx_management_dict[current_xid] = {'db_conn': db_conn, 'child_peer_list': []}
 
-        print("lock phase")
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
             lock_ids = []
             delta = params['delta']
@@ -44,7 +42,6 @@ class Propagation(object):
                 for lock_id in lock_ids:
                     cur.execute("SELECT * FROM {}_lineage WHERE id={} FOR UPDATE NOWAIT".format(BASE_TABLE, lock_id))
 
-                print("execution phase")
                 dt, stmts = dejimautils.convert_to_sql_from_json(params['delta'])
                 for stmt in stmts:
                     cur.execute(stmt)
@@ -54,25 +51,24 @@ class Propagation(object):
                 resp.body = json.dumps({"result": "Nak"})
                 return
 
-            print("propagation phase")
             dt_list = list(self.dejima_config_dict['dejima_table'].keys())
             dt_list.remove(dt)
             for dt in dt_list:
                 if self.peer_name not in self.dejima_config_dict['dejima_table'][dt]: continue
-                cur.execute("SELECT {}_propagate_updates_to_{}()".format(BASE_TABLE, dt))
-                cur.execute("SELECT public.{}_get_detected_update_data()".format(dt))
-                delta, *_ = cur.fetchone()
-                if delta != None:
-                    delta = json.loads(delta)
-                    target_peers = list(self.dejima_config_dict['dejima_table'][dt])
-                    target_peers.remove(self.peer_name)
-                    self.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
-                    result = dejimautils.prop_request(target_peers, dt, delta, current_xid, self.dejima_config_dict)
-                    print("prop result: ", result)
-                    if result != "Ack":
-                        msg = {"result": "Nak"}
-                        break
+                target_peers = list(self.dejima_config_dict['dejima_table'][dt])
+                target_peers.remove(self.peer_name)
+                if params["parent_peer"] in target_peers: target_peers.remove(params["parent_peer"])
+                if target_peers != []:
+                    cur.execute("SELECT {}_propagate_updates_to_{}()".format(BASE_TABLE, dt))
+                    cur.execute("SELECT public.{}_get_detected_update_data()".format(dt))
+                    delta, *_ = cur.fetchone()
+                    if delta != None:
+                        delta = json.loads(delta)
+                        self.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
+                        result = dejimautils.prop_request(target_peers, dt, delta, current_xid, self.peer_name, self.dejima_config_dict)
+                        if result != "Ack":
+                            msg = {"result": "Nak"}
+                            break
 
         resp.body = json.dumps(msg)
-        print("/propagate finish")
         return

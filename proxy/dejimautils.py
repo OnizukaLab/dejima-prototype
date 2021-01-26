@@ -28,7 +28,7 @@ def lock_request_with_lineage(peers, lineages, current_xid, dejima_config_dict):
     else:
         return "Nak"
 
-def prop_request(peers, dt, delta, current_xid, dejima_config_dict):
+def prop_request(peers, dt, delta, current_xid, my_peername, dejima_config_dict):
     thread_list = []
     results = []
     for peer in peers:
@@ -36,6 +36,7 @@ def prop_request(peers, dt, delta, current_xid, dejima_config_dict):
             "xid": current_xid,
             "dejima_table": dt,
             "delta": delta,
+            "parent_peer": my_peername
         }
         url = "http://{}/_propagate".format(dejima_config_dict['peer_address'][peer])
         thread = threading.Thread(target=base_request, args=([url, data, results]))

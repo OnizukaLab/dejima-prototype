@@ -4,6 +4,7 @@ from psycopg2.extras import DictCursor
 import dejimautils
 import requests
 import sqlparse
+import time
 
 class Execution(object):
     def __init__(self, peer_name, tx_management_dict, dejima_config_dict):
@@ -12,11 +13,9 @@ class Execution(object):
         self.dejima_config_dict = dejima_config_dict
 
     def on_post(self, req, resp):
-        print("/execute start")
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
-        print("param_load finish")
 
         msg = {}
         current_xid = params['xid']
@@ -30,11 +29,8 @@ class Execution(object):
         self.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
         delta = {"view": params["view"], "insertions": params["insertions"], "deletions": params["deletions"]}
 
-        print("prop request start")
-        result = dejimautils.prop_request(target_peers, updated_dt, delta, current_xid, self.dejima_config_dict)
-        print("prop request finish")
+        result = dejimautils.prop_request(target_peers, updated_dt, delta, current_xid, self.peer_name, self.dejima_config_dict)
         
-        print("/execute finish")
         if result == "Ack":
             resp.body = "true"
             return

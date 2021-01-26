@@ -21,11 +21,9 @@ class Test(object):
         return
     
     def on_get(self, req, resp):
-        if req.content_length:
-            body = req.bounded_stream.read()
-            params = json.loads(body)
-
-        print("tx_management_dict:", self.tx_management_dict)
-        msg = {"result": "Ack"}
-        resp.body = json.dumps(msg)
+        if 'peer_name' in locals(): print("peer_name exists in global scope")
+        print("/test start")
+        print("peer_name: ", self.peer_name)
+        resp.body = "Ack"
+        print("/test end")
         return

@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 import dejimautils
 import requests
+import time
 
 class Termination(object):
     def __init__(self, peer_name, tx_management_dict, dejima_config_dict, connection_pool):
@@ -12,10 +13,9 @@ class Termination(object):
         self.connection_pool = connection_pool
 
     def on_post(self, req, resp):
-        print("/terminate start")
+        start = time.time()
         if req.content_length:
             body = req.bounded_stream.read()
-            print("body: ", body)
             params = json.loads(body)
 
         msg = {"result": "Ack"}
@@ -45,13 +45,12 @@ class Termination(object):
             target_list.extend(self.tx_management_dict[target_key]['child_peer_list'])
             del self.tx_management_dict[target_key]
         target_list = list(set(target_list))
-        print("termination_request start")
         if commit: 
             dejimautils.termination_request(target_list, "commit", current_xid, self.dejima_config_dict) 
         else:
             dejimautils.termination_request(target_list, "abort", current_xid, self.dejima_config_dict) 
-        print("termination_request completed")
 
         resp.body = json.dumps(msg)
-        print("/terminate finish")
+        elapsed_time = time.time() - start
+        print(elapsed_time)
         return
