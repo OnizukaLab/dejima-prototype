@@ -12,7 +12,7 @@ services:
             ipv4_address: 172.30.0.2
 
   peera-db:
-    image: nonv-dejimapg:11.2-alpine
+    image: ekayim/dejima-nonvpg
     container_name: PeerA-db
     ports:
         - 54321:5432
@@ -31,7 +31,8 @@ services:
   peera-proxy:
     image: ekayim/dejima-proxy:latest
     container_name: PeerA-proxy
-    command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    # command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    command: python server.py
     volumes:
         - ./proxy:/code
     ports:
@@ -56,7 +57,7 @@ services:
             ipv4_address: 172.30.0.5
 
   peerb-db:
-    image: nonv-dejimapg:11.2-alpine
+    image: ekayim/dejima-nonvpg
     container_name: PeerB-db
     ports:
         - 54322:5432
@@ -75,7 +76,8 @@ services:
   peerb-proxy:
     image: ekayim/dejima-proxy:latest
     container_name: PeerB-proxy
-    command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    # command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    command: python server.py
     volumes:
         - ./proxy:/code
     ports:
@@ -100,7 +102,7 @@ services:
             ipv4_address: 172.30.0.8
 
   peerc-db:
-    image: nonv-dejimapg:11.2-alpine
+    image: ekayim/dejima-nonvpg
     container_name: PeerC-db
     ports:
         - 54323:5432
@@ -119,7 +121,8 @@ services:
   peerc-proxy:
     image: ekayim/dejima-proxy:latest
     container_name: PeerC-proxy
-    command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    # command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    command: python server.py
     volumes:
         - ./proxy:/code
     ports:

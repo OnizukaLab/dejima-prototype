@@ -9,8 +9,8 @@
         "PeerC": ["bt"]
     },
     "peer_address": {
-        "PeerA": "PeerA-nginx:443",
-        "PeerB": "PeerB-nginx:443",
-        "PeerC": "PeerC-nginx:443"
+        "PeerA": "PeerA-proxy:8000",
+        "PeerB": "PeerB-proxy:8000",
+        "PeerC": "PeerC-proxy:8000"
     }
 }

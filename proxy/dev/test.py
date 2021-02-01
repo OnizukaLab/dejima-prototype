@@ -5,25 +5,19 @@ import dejimautils
 import requests
 
 class Test(object):
-    def __init__(self, peer_name, tx_management_dict, dejima_config_dict):
-        self.peer_name = peer_name
-        self.tx_management_dict = tx_management_dict
-        self.dejima_config_dict = dejima_config_dict
+    def __init__(self):
+        pass
 
     def on_post(self, req, resp):
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        print("accepted data: {}".format(params))
         msg = {"result": "Ack"}
-        resp.body = json.dumps(msg)
+        #resp.body = json.dumps(msg)
+        resp.body = "true"
         return
     
     def on_get(self, req, resp):
-        if 'peer_name' in locals(): print("peer_name exists in global scope")
-        print("/test start")
-        print("peer_name: ", self.peer_name)
         resp.body = "Ack"
-        print("/test end")
         return

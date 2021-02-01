@@ -23,7 +23,11 @@ AS $$
         CREATE TEMPORARY TABLE termination_flag ON COMMIT DROP AS (SELECT true as finish);
 
         xid := (SELECT txid_current());
-        json_data := concat('{"xid": "PeerA_', xid, '", "result": "commit"}');
+        IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'false_flag') THEN
+          json_data := concat('{"xid": "PeerA_', xid, '", "result": "commit"}');
+        ELSE
+          json_data := concat('{"xid": "PeerA_', xid, '", "result": "abort"}');
+        END IF;
         result := public.terminate_run_shell(json_data);
     END IF;
   END IF;

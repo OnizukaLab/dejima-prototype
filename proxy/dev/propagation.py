@@ -4,13 +4,11 @@ from psycopg2.extras import DictCursor
 import dejimautils
 import requests
 import sqlparse
+import config
 
 class Propagation(object):
-    def __init__(self, peer_name, tx_management_dict, dejima_config_dict, connection_pool):
-        self.peer_name = peer_name
-        self.tx_management_dict = tx_management_dict
-        self.dejima_config_dict = dejima_config_dict
-        self.connection_pool = connection_pool
+    def __init__(self):
+        pass
 
     def on_post(self, req, resp):
         if req.content_length:
@@ -21,11 +19,11 @@ class Propagation(object):
         BASE_TABLE = "bt"
         current_xid = "_".join(params['xid'].split("_")[0:2])
 
-        db_conn = self.connection_pool.getconn()
-        if current_xid in self.tx_management_dict.keys():
+        db_conn = config.connection_pool.getconn(key=current_xid)
+        if current_xid in config.tx_management_dict.keys():
             resp.body = json.dumps({"result": "Nak"})
             return
-        self.tx_management_dict[current_xid] = {'db_conn': db_conn, 'child_peer_list': []}
+        config.tx_management_dict[current_xid] = {'child_peer_list': []}
 
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
             lock_ids = []
@@ -47,16 +45,16 @@ class Propagation(object):
                     cur.execute(stmt)
                 cur.execute("SELECT {}_propagate_updates()".format(dt))
             except Exception as e:
-                print(e)
+                print("DB ERROR: ", e)
                 resp.body = json.dumps({"result": "Nak"})
                 return
 
-            dt_list = list(self.dejima_config_dict['dejima_table'].keys())
+            dt_list = list(config.dejima_config_dict['dejima_table'].keys())
             dt_list.remove(dt)
             for dt in dt_list:
-                if self.peer_name not in self.dejima_config_dict['dejima_table'][dt]: continue
-                target_peers = list(self.dejima_config_dict['dejima_table'][dt])
-                target_peers.remove(self.peer_name)
+                if config.peer_name not in config.dejima_config_dict['dejima_table'][dt]: continue
+                target_peers = list(config.dejima_config_dict['dejima_table'][dt])
+                target_peers.remove(config.peer_name)
                 if params["parent_peer"] in target_peers: target_peers.remove(params["parent_peer"])
                 if target_peers != []:
                     cur.execute("SELECT {}_propagate_updates_to_{}()".format(BASE_TABLE, dt))
@@ -64,8 +62,8 @@ class Propagation(object):
                     delta, *_ = cur.fetchone()
                     if delta != None:
                         delta = json.loads(delta)
-                        self.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
-                        result = dejimautils.prop_request(target_peers, dt, delta, current_xid, self.peer_name, self.dejima_config_dict)
+                        config.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
+                        result = dejimautils.prop_request(target_peers, dt, delta, current_xid, config.peer_name, config.dejima_config_dict)
                         if result != "Ack":
                             msg = {"result": "Nak"}
                             break
