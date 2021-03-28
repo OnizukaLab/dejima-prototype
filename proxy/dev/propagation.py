@@ -8,6 +8,7 @@ class Propagation(object):
         pass
 
     def on_post(self, req, resp):
+        print("start prop")
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)

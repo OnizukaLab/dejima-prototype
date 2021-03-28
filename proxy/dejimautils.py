@@ -79,6 +79,7 @@ def termination_request(peers, result, current_xid, dejima_config_dict):
 def base_request(url, data, results):
     try:
         headers = {"Content-Type": "application/json"}
+        print("url: ",  url)
         res = requests.post(url, json.dumps(data), headers=headers)
         if res.json()['result'] == "Ack":
             results.append(True)

@@ -1,16 +1,5 @@
 version: '3'
 services:
-  peera-nginx:
-    image: nginx
-    container_name: PeerA-nginx
-    volumes:
-      - ./nginx/PeerA/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - 444:443
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.2
-
   peera-db:
     image: ekayim/dejima-nonvpg
     container_name: PeerA-db
@@ -44,17 +33,6 @@ services:
     networks:
         dejima_net:
             ipv4_address: 172.30.0.4
-
-  peerb-nginx:
-    image: nginx
-    container_name: PeerB-nginx
-    volumes:
-      - ./nginx/PeerB/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - 445:443
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.5
 
   peerb-db:
     image: ekayim/dejima-nonvpg
@@ -90,17 +68,6 @@ services:
         dejima_net:
             ipv4_address: 172.30.0.7
 
-  peerc-nginx:
-    image: nginx
-    container_name: PeerC-nginx
-    volumes:
-      - ./nginx/PeerC/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - 446:443
-    networks:
-        dejima_net:
-            ipv4_address: 172.30.0.8
-
   peerc-db:
     image: ekayim/dejima-nonvpg
     container_name: PeerC-db
@@ -134,6 +101,40 @@ services:
     networks:
         dejima_net:
             ipv4_address: 172.30.0.10
+
+  mediator-db:
+    image: ekayim/dejima-nonvpg
+    container_name: Mediator-db
+    ports:
+        - 54324:5432
+    volumes:
+        - ./db/postgresql.conf:/etc/postgresql.conf
+        - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
+        - ./db/setup_files:/etc/setup_files
+    environment:
+        - PEER_NAME=Mediator 
+        - DEJIMA_EXECUTION_ENDPOINT=Mediator-proxy:8000/execute
+        - DEJIMA_TERMINATION_ENDPOINT=Mediator-proxy:8000/terminate
+    networks:
+        dejima_net:
+            ipv4_address: 172.30.0.12
+
+  mediator-proxy:
+    image: ekayim/dejima-proxy:latest
+    container_name: Mediator-proxy
+    command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
+    # command: python handmade_server.py
+    volumes:
+        - ./proxy:/code
+    ports:
+        - 8004:8000
+    depends_on:
+        - mediator-db
+    environment: 
+        - PEER_NAME=Mediator 
+    networks:
+        dejima_net:
+            ipv4_address: 172.30.0.13
 networks:
   dejima_net:
     driver: bridge
