@@ -1,12 +1,8 @@
 import json
-import psycopg2
-from psycopg2.extras import DictCursor
 import dejimautils
-import requests
-import sqlparse
-import time
 import os
 import config
+import datetime
 
 class Execution(object):
     def __init__(self):
@@ -33,5 +29,5 @@ class Execution(object):
             resp.body = "true"
         else:
             resp.body = "false"
-        
+        print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " execution finished")
         return

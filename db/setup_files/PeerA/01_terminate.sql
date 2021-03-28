@@ -3,10 +3,11 @@ CREATE EXTENSION IF NOT EXISTS plsh;
 CREATE OR REPLACE FUNCTION public.terminate_run_shell(text) RETURNS text AS $$
 #!/bin/sh
 
-result=$(curl -s -X POST -H "Content-Type: application/json" $DEJIMA_TERMINATION_ENDPOINT -d "$1")
+result=$(curl -s -X POST -H "Content-Type: application/json" -H "Connection: close" $DEJIMA_TERMINATION_ENDPOINT -d "$1")
 $$ LANGUAGE plsh;
 
-CREATE OR REPLACE FUNCTION public.terminate()
+CREATE OR REPLACE FUNCTION public.terminate_for_trigger()
+-- RETURNS trigger
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
@@ -25,17 +26,19 @@ AS $$
         xid := (SELECT txid_current());
         IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'false_flag') THEN
           json_data := concat('{"xid": "PeerA_', xid, '", "result": "commit"}');
+          result := public.terminate_run_shell(json_data);
         ELSE
           json_data := concat('{"xid": "PeerA_', xid, '", "result": "abort"}');
+          result := public.terminate_run_shell(json_data);
+          RAISE USING MESSAGE = 'abort following 2PC';
         END IF;
-        result := public.terminate_run_shell(json_data);
     END IF;
   END IF;
-  RETURN null;
+  RETURN NULL;
   END;
 $$;
 
 DROP TRIGGER IF EXISTS zzz_terminate_trigger ON public.bt;
 CREATE CONSTRAINT TRIGGER zzz_terminate_trigger
     AFTER INSERT OR UPDATE OR DELETE ON
-    public.bt DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.terminate();
+    public.bt DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE public.terminate_for_trigger();

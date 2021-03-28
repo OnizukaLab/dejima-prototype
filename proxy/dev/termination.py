@@ -1,9 +1,6 @@
 import json
-import psycopg2
-from psycopg2.extras import DictCursor
 import dejimautils
-import requests
-import time
+import datetime
 import config
 
 class Termination(object):
@@ -31,7 +28,7 @@ class Termination(object):
             else:
                 db_conn.rollback()
                 msg = {"result": "Nak"}
-            config.connection_pool.putconn(db_conn, key=current_xid)
+            config.connection_pool.putconn(db_conn, key=current_xid, close=True)
 
         target_tx_keys = [key for key in config.tx_management_dict.keys() if key.startswith(current_xid)]
         target_list = []
@@ -47,4 +44,5 @@ class Termination(object):
                 dejimautils.termination_request(target_list, "abort", current_xid, config.dejima_config_dict) 
 
         resp.body = json.dumps(msg)
+        print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " termination finished")
         return

@@ -8,7 +8,8 @@ result=$(curl -s -X POST -H "Content-Type: application/json" $DEJIMA_TERMINATION
 $$ LANGUAGE plsh;
 
 CREATE OR REPLACE FUNCTION public.terminate()
-RETURNS trigger
+-- RETURNS trigger
+RETURNS void
 LANGUAGE plpgsql
 AS $$
   DECLARE
@@ -26,13 +27,15 @@ AS $$
         xid := (SELECT txid_current());
         IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'false_flag') THEN
           json_data := concat('{"xid": "PeerC_', xid, '", "result": "commit"}');
+          result := public.terminate_run_shell(json_data);
         ELSE
           json_data := concat('{"xid": "PeerC_', xid, '", "result": "abort"}');
+          result := public.terminate_run_shell(json_data);
+          RAISE USING MESSAGE = 'abort following 2PC';
         END IF;
-        result := public.terminate_run_shell(json_data);
     END IF;
   END IF;
-  RETURN null;
+  RETURN NULL;
   END;
 $$;
 

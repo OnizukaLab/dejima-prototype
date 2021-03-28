@@ -1,9 +1,6 @@
 import json
-import psycopg2
 from psycopg2.extras import DictCursor
 import dejimautils
-import requests
-import sqlparse
 import config
 
 class Propagation(object):
@@ -22,6 +19,7 @@ class Propagation(object):
         db_conn = config.connection_pool.getconn(key=current_xid)
         if current_xid in config.tx_management_dict.keys():
             resp.body = json.dumps({"result": "Nak"})
+            config.connection_pool.putconn(db_conn, key=current_xid)
             return
         config.tx_management_dict[current_xid] = {'child_peer_list': []}
 
@@ -62,6 +60,7 @@ class Propagation(object):
                     delta, *_ = cur.fetchone()
                     if delta != None:
                         delta = json.loads(delta)
+                        print(delta)
                         config.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
                         result = dejimautils.prop_request(target_peers, dt, delta, current_xid, config.peer_name, config.dejima_config_dict)
                         if result != "Ack":
