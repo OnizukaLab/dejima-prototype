@@ -9,7 +9,7 @@ $$ LANGUAGE plsh;
 
 CREATE OR REPLACE FUNCTION public.terminate()
 -- RETURNS trigger
-RETURNS void
+RETURNS trigger
 LANGUAGE plpgsql
 AS $$
   DECLARE

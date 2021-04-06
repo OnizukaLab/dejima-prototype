@@ -19,7 +19,7 @@ class Propagation(object):
         db_conn = config.connection_pool.getconn(key=current_xid)
         if current_xid in config.tx_management_dict.keys():
             resp.body = json.dumps({"result": "Nak"})
-            config.connection_pool.putconn(db_conn, key=current_xid)
+            config.connection_pool.putconn(db_conn, key=current_xid, close=True)
             return
         config.tx_management_dict[current_xid] = {'child_peer_list': []}
 
