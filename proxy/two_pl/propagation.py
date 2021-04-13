@@ -1,94 +1,71 @@
 import json
-import psycopg2
 from psycopg2.extras import DictCursor
 import dejimautils
-import requests
+import config
 
 class Propagation(object):
-    def __init__(self, peer_name, db_conn_dict, child_peer_dict, dejima_config_dict):
-        self.peer_name = peer_name
-        self.db_conn_dict = db_conn_dict
-        self.child_peer_dict = child_peer_dict
-        self.dejima_config_dict = dejima_config_dict
+    def __init__(self):
+        pass
 
     def on_post(self, req, resp):
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        dt_list = list(self.dejima_config_dict['dejima_table'].keys())
-        msg = {"result": "ack"}
-        xid_list = self.db_conn_dict.keys()
-        current_xid = ""
-        sql_stmts = []
-        child_peer_set = set([])
+        msg = {"result": "Ack"}
+        BASE_TABLE = "bt"
+        current_xid = "_".join(params['xid'].split("_")[0:2])
 
-        # ----- xid check -----
-        if params['xid'] in xid_list:
-            msg = {"result": "Failed for loop detection"}
-            resp.body = json.dumps(msg)
+        db_conn = config.connection_pool.getconn(key=current_xid)
+        if current_xid in config.tx_management_dict.keys():
+            resp.body = json.dumps({"result": "Nak"})
+            config.connection_pool.putconn(db_conn, key=current_xid, close=True)
             return
-        else:
-            current_xid = params['xid']
-            self.db_conn_dict[current_xid] = None
-            _, sql_stmts = dejimautils.convert_to_sql_from_json(params['sql_statements'])
-            self.child_peer_dict[current_xid] = []
-            
-        # ----- connect to postgreSQL -----
-        db_conn = psycopg2.connect("connect_timeout=1 dbname=postgres user=dejima password=barfoo host={}-db port=5432".format(self.peer_name))
+        config.tx_management_dict[current_xid] = {'child_peer_list': []}
 
-        # ----- execute transaction -----
         with db_conn.cursor(cursor_factory=DictCursor) as cur:
-            # save connection to database
-            self.db_conn_dict[current_xid] = db_conn
+            lock_ids = []
+            delta = params['delta']
+            insertion_records = delta["insertions"]
+            deletion_records = delta["deletions"]
+            for record in insertion_records:
+                lock_ids.append(record['id'])
+            for record in deletion_records:
+                lock_ids.append(record['id'])
+            lock_ids = set(lock_ids)
+
             try:
-                lock_stmts = dejimautils.convert_to_lock_stmts(sql_stmts)
-                for stmt in lock_stmts:
+                for lock_id in lock_ids:
+                    cur.execute("SELECT * FROM {}_lineage WHERE id={} FOR UPDATE NOWAIT".format(BASE_TABLE, lock_id))
+
+                dt, stmts = dejimautils.convert_to_sql_from_json(params['delta'])
+                for stmt in stmts:
                     cur.execute(stmt)
-                for stmt in sql_stmts:
-                    cur.execute(stmt)
-            except psycopg2.Error as e:
-                print(e)
-                msg = {"result": "Failed in local Tx execution"}
-                resp.body = json.dumps(msg)
-                db_conn.rollback()
+                cur.execute("SELECT {}_propagate_updates()".format(dt))
+            except Exception as e:
+                print("DB ERROR: ", e)
+                resp.body = json.dumps({"result": "Nak"})
                 return
 
-            # ----- propagation -----
-            dt_list.remove(params['dejima_table'])
+            dt_list = list(config.dejima_config_dict['dejima_table'].keys())
+            dt_list.remove(dt)
             for dt in dt_list:
-                if self.peer_name in self.dejima_config_dict['dejima_table'][dt]:
-                    cur.execute("SELECT public.{}_get_detected_update_data();".format(dt))
+                if config.peer_name not in config.dejima_config_dict['dejima_table'][dt]: continue
+                target_peers = list(config.dejima_config_dict['dejima_table'][dt])
+                target_peers.remove(config.peer_name)
+                if params["parent_peer"] in target_peers: target_peers.remove(params["parent_peer"])
+                if target_peers != []:
+                    cur.execute("SELECT {}_propagate_updates_to_{}()".format(BASE_TABLE, dt))
+                    cur.execute("SELECT public.{}_get_detected_update_data()".format(dt))
                     delta, *_ = cur.fetchone()
                     if delta != None:
-                        for peer in self.dejima_config_dict['dejima_table'][dt]:
-                            if peer == self.peer_name:
-                                continue
-                            child_peer_set.add(peer)
-                            url = "http://{}/_propagate".format(self.dejima_config_dict['peer_address'][peer])
-                            headers = {"Content-Type": "application/json"}
-                            data = {
-                                "xid": current_xid,
-                                "dejima_table": dt,
-                                "sql_statements": delta
-                            }
-                            try:
-                                res = requests.post(url, json.dumps(data), headers=headers)
-                                result = res.json()['result']
-                                self.child_peer_dict[current_xid] = child_peer_set
-                                if result != "ack":
-                                    msg["result"] = "Failed in a child server"
-                                    resp.body = json.dumps(msg)
-                                    break
-                            except Exception as e:
-                                print(e)
-                                msg["result"] = "Failed to connect a child server"
-                                resp.body = json.dumps(msg)
-                                break
-                        else:
-                            continue
-                        break
+                        delta = json.loads(delta)
+                        print(delta)
+                        config.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
+                        result = dejimautils.prop_request(target_peers, dt, delta, current_xid, config.peer_name, config.dejima_config_dict)
+                        if result != "Ack":
+                            msg = {"result": "Nak"}
+                            break
 
-        # send "ack" and exit
         resp.body = json.dumps(msg)
         return

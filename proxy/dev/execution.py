@@ -13,7 +13,6 @@ class Execution(object):
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        msg = {}
         current_xid = params['xid']
         config.tx_management_dict[current_xid] = {"db_conn": None, "child_peer_list": []}
 

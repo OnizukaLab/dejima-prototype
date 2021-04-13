@@ -1,54 +1,48 @@
 import json
-import psycopg2
-from psycopg2.extras import DictCursor
 import dejimautils
-import requests
+import datetime
+import config
 
 class Termination(object):
-    def __init__(self, db_conn_dict, child_peer_dict, dejima_config_dict):
-        self.db_conn_dict = db_conn_dict
-        self.child_peer_dict = child_peer_dict
-        self.dejima_config_dict = dejima_config_dict
+    def __init__(self):
+        pass
 
     def on_post(self, req, resp):
         if req.content_length:
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        msg = {}
-        current_xid = params['xid'] 
-        db_conn = self.db_conn_dict[current_xid]
-        del self.db_conn_dict[current_xid]
-
+        msg = {"result": "Ack"}
         if params['result'] == "commit":
-            for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
-                headers = {"Content-Type": "application/json"}
-                data = {
-                    "xid": current_xid,
-                    "result": "commit"
-                }
-                try:
-                    res = requests.post(url, json.dumps(data), headers=headers)
-                except:
-                    continue
-            db_conn.commit()
-        elif params['result'] == "abort":
-            for peer in self.child_peer_dict[current_xid]:
-                url = "http://{}/_terminate_transaction".format(self.dejima_config_dict['peer_address'][peer])
-                headers = {"Content-Type": "application/json"}
-                data = {
-                    "xid": current_xid,
-                    "result": "abort"
-                }
-                try:
-                    res = requests.post(url, json.dumps(data), headers=headers)
-                except:
-                    continue
-            if db_conn != None:
+            commit = True
+        else:
+            commit = False
+        current_xid = params['xid']
+        if not current_xid.startswith(config.peer_name):
+            # db_conn = config.tx_management_dict[current_xid]['db_conn']
+            db_conn = config.connection_pool.getconn(key=current_xid)
+            # termination 
+            if commit:
+                db_conn.commit()
+                msg = {"result": "Ack"}
+            else:
                 db_conn.rollback()
+                msg = {"result": "Nak"}
+            config.connection_pool.putconn(db_conn, key=current_xid, close=True)
 
-        if db_conn != None:
-            db_conn.close()
-        msg["result"] = "ack"
+        target_tx_keys = [key for key in config.tx_management_dict.keys() if key.startswith(current_xid)]
+        target_list = []
+        for target_key in target_tx_keys:
+            target_list.extend(config.tx_management_dict[target_key]['child_peer_list'])
+            del config.tx_management_dict[target_key]
+
+        target_list = list(set(target_list))
+        if target_list != []:
+            if commit: 
+                dejimautils.termination_request(target_list, "commit", current_xid, config.dejima_config_dict) 
+            else:
+                dejimautils.termination_request(target_list, "abort", current_xid, config.dejima_config_dict) 
+
         resp.body = json.dumps(msg)
+        print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " termination finished")
+        return
