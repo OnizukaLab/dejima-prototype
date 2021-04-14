@@ -28,5 +28,4 @@ class Execution(object):
             resp.body = "true"
         else:
             resp.body = "false"
-        print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " execution finished")
         return

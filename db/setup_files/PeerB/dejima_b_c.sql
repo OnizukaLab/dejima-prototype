@@ -195,7 +195,7 @@ FROM __temp__Δ_del_bt_for_dejima_b_c AS __temp__Δ_del_bt_for_dejima_b_c_a4_0  
                     || result;
                 END IF;
             ELSE 
-                RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+                -- RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
 
                 -- update the table that stores the insertions and deletions we calculated
                 DELETE FROM public.__dummy__dejima_b_c_detected_deletions;
@@ -333,7 +333,7 @@ DROP TABLE Δ_ins_bt;
                     || result;
                 END IF;
             ELSE 
-                RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
+                -- RAISE LOG 'function of detecting dejima update is called by % , no request sent to dejima proxy', user_name;
 
                 -- update the table that stores the insertions and deletions we calculated
                 DELETE FROM public.__dummy__dejima_b_c_detected_deletions;

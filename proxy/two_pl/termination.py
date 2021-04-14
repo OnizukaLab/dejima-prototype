@@ -19,7 +19,6 @@ class Termination(object):
             commit = False
         current_xid = params['xid']
         if not current_xid.startswith(config.peer_name):
-            # db_conn = config.tx_management_dict[current_xid]['db_conn']
             db_conn = config.connection_pool.getconn(key=current_xid)
             # termination 
             if commit:
@@ -44,5 +43,5 @@ class Termination(object):
                 dejimautils.termination_request(target_list, "abort", current_xid, config.dejima_config_dict) 
 
         resp.body = json.dumps(msg)
-        print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " termination finished")
+        print("termination finished")
         return

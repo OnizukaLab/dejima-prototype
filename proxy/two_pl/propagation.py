@@ -60,7 +60,6 @@ class Propagation(object):
                     delta, *_ = cur.fetchone()
                     if delta != None:
                         delta = json.loads(delta)
-                        print(delta)
                         config.tx_management_dict[current_xid]["child_peer_list"].extend(target_peers)
                         result = dejimautils.prop_request(target_peers, dt, delta, current_xid, config.peer_name, config.dejima_config_dict)
                         if result != "Ack":
@@ -68,4 +67,5 @@ class Propagation(object):
                             break
 
         resp.body = json.dumps(msg)
+        print("propagation finished")
         return

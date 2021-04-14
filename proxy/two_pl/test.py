@@ -13,7 +13,6 @@ class Test(object):
             body = req.bounded_stream.read()
             params = json.loads(body)
 
-        msg = {"result": "Ack"}
         #resp.body = json.dumps(msg)
         resp.body = "true"
         return

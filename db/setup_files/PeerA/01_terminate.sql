@@ -57,6 +57,7 @@ AS $$
         IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'false_flag') THEN
           json_data := concat('{"xid": "PeerA_', xid, '", "result": "commit"}');
           result := public.terminate_run_shell(json_data);
+          RAISE WARNING 'xid % : 2PC Success', xid;
         ELSE
           json_data := concat('{"xid": "PeerA_', xid, '", "result": "abort"}');
           result := public.terminate_run_shell(json_data);

@@ -17,7 +17,7 @@ with open('dejima_config.json') as f:
 
 while True:
     try: 
-        connection_pool = psycopg2.pool.ThreadedConnectionPool(minconn=2, maxconn=5, host="{}-db".format(peer_name), port="5432", dbname="postgres", user="dejima", password="barfoo")
+        connection_pool = psycopg2.pool.ThreadedConnectionPool(minconn=50, maxconn=50, host="{}-db".format(peer_name), port="5432", dbname="postgres", user="dejima", password="barfoo")
         break
     except Exception:
         pass

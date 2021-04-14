@@ -1,14 +1,27 @@
-CREATE OR REPLACE PROCEDURE public.transaction_A(id1 integer, id2 integer, v1 varchar(80)) LANGUAGE plpgsql AS $$ 
+CREATE OR REPLACE PROCEDURE public.transaction_A(
+   rid1 integer,
+   rid2 integer,
+   rid3 integer,
+   rid4 integer,
+   rid5 integer,
+   wid1 integer,
+   wid2 integer,
+   wid3 integer,
+   wid4 integer,
+   wid5 integer
+) 
+LANGUAGE plpgsql AS
+$$ 
 DECLARE
   text_var1 text;
   text_var2 text;
   text_var3 text;
 BEGIN
   -- statements
-  PERFORM * FROM bt_lineage WHERE id=id1 FOR SHARE NOWAIT;
-  PERFORM * FROM bt_lineage WHERE id=id2 FOR UPDATE NOWAIT;
-  PERFORM * FROM bt WHERE id = id1;
-  UPDATE bt SET col1=v1 WHERE id=id2;
+  RAISE LOG 'ids: %, %, %, %, %, %, %, %, %, %', rid1, rid2, rid3, rid4, rid5, wid1, wid2, wid3, wid4, wid5;
+  PERFORM * FROM bt_lineage WHERE id IN (rid1, rid2, rid3, rid4, rid5) FOR SHARE NOWAIT;
+  PERFORM * FROM bt_lineage WHERE id IN (wid1, wid2, wid3, wid4, wid5) FOR UPDATE NOWAIT;
+  UPDATE bt SET col1=left(md5(col1), 5) WHERE id IN (wid1, wid2, wid3, wid4, wid5);
   SET CONSTRAINTS public.bt_detect_update_on_dejima_a_b IMMEDIATE;
   SET CONSTRAINTS public.bt_detect_update_on_dejima_a_b DEFERRED;
   PERFORM public.terminate();

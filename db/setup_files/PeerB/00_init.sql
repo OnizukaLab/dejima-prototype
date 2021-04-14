@@ -8,10 +8,13 @@ CREATE TABLE BT (
 );
 
 \echo 'LOADING bt'
-INSERT INTO bt VALUES
-(1, 'abcde', 'abcde', 'abcde'),
-(2, 'fghij', 'fghij', 'fghij'),
-(3, 'klmno', 'klmno', 'klmno');
+insert into bt (id, col1, col2, col3)
+select
+	i as id, 
+	left(md5(i::text), 5) as col1,
+	left(md5((i+1)::text), 5) as col2,
+	left(md5((i+2)::text), 5) as col3 
+from generate_series(1,10000) as i;
 
 CREATE TABLE BT_LINEAGE (
 		ID		INT PRIMARY KEY,
@@ -19,7 +22,5 @@ CREATE TABLE BT_LINEAGE (
 	);
 
 \echo 'LOADING bt_lineage'
-INSERT INTO bt_lineage VALUES
-(1,'<PeerA,bt,1>'),
-(2,'<PeerA,bt,2>'),
-(3,'<PeerA,bt,3>');
+INSERT INTO bt_lineage (id, lineage)
+select i as id, '<PeerA,bt,' || i::text || '>' from generate_series(1,10000) as i;
