@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 
 app = falcon.API()
 
-METHOD = "two_pl"
+METHOD = "dev"
 if (METHOD=="dev"):
     from dev.execution import Execution
     from dev.propagation import Propagation
