@@ -1,7 +1,7 @@
 {
     "dejima_table": {
-        "dejima_a_b": ["PeerA", "PeerB"],
-        "dejima_b_c": ["PeerB", "PeerC"]
+        "a1": ["PeerA", "PeerB"],
+        "a2": ["PeerB", "PeerC"]
     },
     "base_table": {
         "PeerA": ["bt"],
