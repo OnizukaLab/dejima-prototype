@@ -21,7 +21,6 @@ services:
     image: ekayim/dejima-proxy:latest
     container_name: PeerA-proxy
     command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
-    # command: python handmade_server.py
     volumes:
         - ./proxy:/code
     ports:
@@ -55,7 +54,6 @@ services:
     image: ekayim/dejima-proxy:latest
     container_name: PeerB-proxy
     command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
-    # command: python handmade_server.py
     volumes:
         - ./proxy:/code
     ports:
@@ -89,7 +87,6 @@ services:
     image: ekayim/dejima-proxy:latest
     container_name: PeerC-proxy
     command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
-    # command: python handmade_server.py
     volumes:
         - ./proxy:/code
     ports:
