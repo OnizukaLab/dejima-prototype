@@ -182,14 +182,14 @@ FROM __temp__Δ_del_bt_for_dejima_a_b AS __temp__Δ_del_bt_for_dejima_a_b_a4_0  
             user_name := (SELECT session_user);
             IF NOT (user_name = 'dejima') THEN 
                 xid := (SELECT txid_current());
-                json_data := concat('{"xid": "PeerA_', xid, '_dejima_a_b" ,"view": ' , '"public.dejima_a_b"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
+                json_data := concat('{"xid": "', xid, '" ,"view": ' , '"public.dejima_a_b"', ', ' , '"insertions": ' , insertion_data , ', ' , '"deletions": ' , deletion_data , '}');
                 result := public.dejima_a_b_run_shell(json_data);
                 IF result = 'true' THEN 
                     DROP TABLE __temp__Δ_ins_bt_for_dejima_a_b;
                     DROP TABLE __temp__Δ_del_bt_for_dejima_a_b;
                     DROP TABLE __temp__bt_for_dejima_a_b;
                 ELSE
-                    CREATE TEMPORARY TABLE IF NOT EXISTS false_flag ON COMMIT DROP AS (SELECT true as finish);
+                    CREATE TEMPORARY TABLE IF NOT EXISTS dejima_abort_flag ON COMMIT DROP AS (SELECT true as finish);
                     -- RAISE LOG 'result from running the sh script: %', result;
                     RAISE LOG check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                     || result;
