@@ -4,7 +4,7 @@
 したがって，本 README の How to build a new application にしたがって適切な設定を行ったのち，`docker-compose up` コマンドによって起動できます．  
 ## How to build a new application
 以下に新たなアプリケーションを再現するための設定方法を記述しています．  
-各設定するピア名や Dejima テーブル名などは必ず各手順で同一の文字列を設定してください．
+各ピア名や Dejima テーブル名などは必ず各設定で同一の文字列を設定してください．
 なお，指定するピア名にはアンダースコアを含めないでください．
 ### docker-compose.yml の編集
 以下の項目を適切に設定してください．詳しくは本リポジトリの docker-compose.yml を参考にしてください．
@@ -28,13 +28,33 @@ db/setup_files/\[ピア名] 以下に，ベーステーブルの定義などに�
 本ディレクトリにある SQL ファイルは各 DB の起動時に一度だけ呼び出されます．
 アルファベット順に呼び出される点に注意してください．
 
+## BIRDS によるトリガ生成 SQL ファイルの生成
+Dejima テーブルを更新可能とするためのトリガー群を生成するには，BIRDS を利用してください．
+なお，BIRDS コマンド実行時に必要なオプションは以下の通りです．
+* `--dejiima` オプション
+* `-b [file_path]` オプション  
+このオプションについては，以下の通りのシェルスクリプトファイルを用意したのち，このパスを引数として与えてください．
+
+```sh
+#!/bin/sh
+
+result=$(curl -s -X POST -H "Content-Type: application/json" $DEJIMA_EXECUTION_ENDPOINT -d "$1")
+if  [ "$result" = "true" ];  then
+    echo "true"
+else 
+    echo $result
+fi
+```
+
 ### BIRDS によって生成したトリガ生成用 SQL ファイルの配置
 Dejima テーブルを定義するための BIRDS によって生成した SQL ファイルを，db/setup_files/\[ピア名] 以下に配置してください．
 
+### db/setup_file/[Peer name]/basetable_list.txt の編集
+本ファイルに, 各ピアで定義されているベーステーブルを記述してください．  
+一行につき 1 テーブル記述してください．
 ## How to execute a transaction
 トランザクションを実行する際は，SELECT 文には必ず `FOR SHARE` キーワードを付けてください．
 これにより Dejima システム全体に渡って直列化可能なトランザクションの実行が可能となります．
 ## Restrictions
 - ユーザは Dejima テーブルを直接更新できません．必ずベーステーブルに対する更新のみにしてください．
-- JOIN や UNION など，複数のベーステーブルから導出される Dejima テーブルを定義している場合，更新伝搬自体は正しく動作しますが，大域的な直列化可能スケジュールが得られない可能性があります．
 - PostgreSQL に接続する際のユーザ名は 'dejima' 以外を使用してください．('dejima' はプロキシサーバによる接続を区別するために使用されています)
