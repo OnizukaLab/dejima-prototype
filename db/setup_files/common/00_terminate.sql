@@ -31,7 +31,7 @@ AS $$
         xid := (SELECT txid_current());
         peer_name := public.get_peername_from_env();
 
-        IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'false_flag') THEN
+        IF NOT EXISTS (SELECT * FROM information_schema.tables WHERE table_name = 'dejima_abort_flag') THEN
           json_data := concat('{"xid": "', peer_name, '_', xid, '", "result": "commit"}');
           result := public.terminate_run_shell(json_data);
         ELSE
