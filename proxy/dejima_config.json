@@ -1,11 +1,16 @@
 {
     "dejima_table": {
-        "dejima_osaka_kyoto": ["Osaka", "Kyoto"],
-        "dejima_osaka_hosei": ["Osaka", "Hosei"]
+        "a1": ["PeerA", "Mediator"],
+        "a2": ["PeerB", "Mediator"]
+    },
+    "base_table": {
+        "PeerA": ["bt"],
+        "PeerB": ["bt"],
+        "Mediator": ["bt"]
     },
     "peer_address": {
-        "Osaka": "di-m.ist.osaka-u.ac.jp:443",
-        "Kyoto": "FQDN or XXX.XXX.XXX.XXX:port",
-        "Hosei": "FQDN or XXX.XXX.XXX.XXX:port"
+        "PeerA": "PeerA-proxy:8000",
+        "PeerB": "PeerB-proxy:8000",
+        "Mediator": "Mediator-proxy:8000"
     }
 }

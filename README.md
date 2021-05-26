@@ -1,85 +1,60 @@
 # Dejima Prototype
-Dejima Prototype is implemented as API server.
+## How to run
+本プログラムは docker によって DB (PostgreSQL) コンテナと，Dejima に関する処理を制御するプロキシサーバコンテナを各ピアごとに立てることによって実現しています．  
+したがって，本 README の How to build a new application にしたがって適切な設定を行ったのち，`docker-compose up` コマンドによって起動できます．  
+## How to build a new application
+以下に新たなアプリケーションを再現するための設定方法を記述しています．  
+各ピア名や Dejima テーブル名などは必ず各設定で同一の文字列を設定してください．
+なお，指定するピア名にはアンダースコアを含めないでください．
+### docker-compose.yml の編集
+以下の項目を適切に設定してください．詳しくは本リポジトリの docker-compose.yml を参考にしてください．
+#### プロキシサーバ
+- container_name : \[ピア名]-proxy (コンテナ間通信の際にアドレスとして使用します)
+- environment > PEER_NAME : ピア名
+#### DB
+- container_name : \[ピア名]-db (コンテナ間通信の際にアドレスとして使用します)
+- environment > PEER_NAME : ピア名
+- environment > DEJIMA_EXECUTION_ENDPOINT : \[ピア名]-proxy:8000/execution
+- environment > DEJIMA_TERMINATION_ENDPOINT : \[ピア名]-proxy:8000/terminate
+### proxy/dejima_config.json の編集
+本ファイルは各ピアが，以下の情報を把握するためのコンフィグファイルです．
+本リポジトリの proxy/dejima_config.json を参照して，適切に設定してください．
+- 自身が参加している Dejima グループの Dejima テーブル
+- 自身が保持しているベーステーブル
+- 各ピアのプロキシサーバのアドレス
 
-## Definition of base tables and dejima tables (Setting of this demo)
-In this demo, there are three peers: Osaka University, Kyoto University, Hosei University.  
-Each peer have a common base table, named "student".  
-The "student" table is as follows:
-```sql
-CREATE TABLE student (
-  ID int NOT NULL,
-  UNIVERSITY varchar(80) NOT NULL,
-  FIRST_NAME varchar(80),
-  LAST_NAME varchar(80),
-  PRIMARY KEY(ID, UNIVERSITY),
+### ベーステーブルの定義等に関する SQL ファイルの配置
+db/setup_files/\[ピア名] 以下に，ベーステーブルの定義などに関する SQL ファイルを配置してください．
+本ディレクトリにある SQL ファイルは各 DB の起動時に一度だけ呼び出されます．
+アルファベット順に呼び出される点に注意してください．
+
+## BIRDS によるトリガ生成 SQL ファイルの生成
+Dejima テーブルを更新可能とするためのトリガー群を生成するには，BIRDS を利用してください．
+なお，BIRDS コマンド実行時に必要なオプションは以下の通りです．
+* `--dejiima` オプション
+* `-b [file_path]` オプション  
+このオプションについては，以下の通りのシェルスクリプトファイルを用意したのち，このパスを引数として与えてください．
+
+```sh
+#!/bin/sh
+
+result=$(curl -s -X POST -H "Content-Type: application/json" $DEJIMA_EXECUTION_ENDPOINT -d "$1")
+if  [ "$result" = "true" ];  then
+    echo "true"
+else 
+    echo $result
+fi
 ```
 
-Osaka and Kyoto share records which belong to "Osaka" or "Kyoto" via dejima table, named "dejima_osaka_kyoto".  
-Osaka and Hosei share records which belong to "Osaka" or "Hosei" via dejima table, named "dejima_osaka_hosei".  
-For example, definition of dejima_osaka_kyoto in Osaka is as follows:
-```sql
-SELECT * FROM student WHERE university = 'Osaka' OR university = 'Kyoto'
-```
+### BIRDS によって生成したトリガ生成用 SQL ファイルの配置
+Dejima テーブルを定義するための BIRDS によって生成した SQL ファイルを，db/setup_files/\[ピア名] 以下に配置してください．
 
-In addition, there are constraints as follows:
-1. In Osaka University, "UNIVERSITY" attribute of records is one of Osaka, Kyoto, or Hosei.
-2. In Kyoto University, "UNIVERSITY" attribute of records is one of Osaka or Kyoto.
-3. In Hosei University, "UNIVERSITY" attribute of records is one of Osaka or Hosei.
-
-## How to build
-You can build this api server just by executing `docker-compose up`.  
-`docker-compose up` command builds three containers:
-- Nginx   
-Reverse Proxy. Port=433. Service name='univ-nginx'.
-- falcon + gunicorn  
-API server. Port=8000. Service name='univ-proxy'
-- PostgreSQL  
-DB. Port=5432. Service name='univ-db'
-
-This API server use http **without SSL**, but this server accepts requests at **443 port**.
-If you already use some reverse proxy, you can build only two containers on the bottom, just by executing `docker-compose up univ-db univ-proxy`
-
-## Configuration files
-- docker-compose.yml  
-A configuration file for container orchestration.  
-Please set the peer name for 'univ-db' and 'univ-proxy' as a environment variable.
-
-- proxy/dejima_config.json  
-A configuration file for proxy.  
-Please set the peer address.
-
-- nginx/nginx.conf  
-A configuration file for nginx.  
-Please set IP address restriction.
-
-## How to call api
-### 1. Posting an arbitary transaction (POST /post_transaction)
-You can post your own transaction by calling /post_transaction.\
-Please POST json data to /post_transaction as follows:
-```bash
-statements1="INSERT INTO student VALUES (1, 'Osaka', 'FIRST', 'LAST'), (2, 'Kyoto', 'FIRST', 'LAST'), (3, 'Hosei', 'FIRST', 'LAST');"
-statements2="DELETE FROM student WHERE id = 3 AND university = 'Hosei'"
-data="{\"sql_statements\":[\"$statement1\", \"$statement2\"]}"
-curl -X POST -H "Content-Type:application/json" -d "$data" localhost:443/post_transaction 
-```
-
-### 2. Add a single student (GET /add_student)
-You can add a single student by calling /add_student.\
-Please access /add_student with parameters as follows:
-```bash
-curl "localhost:443/add_student?id=4&university=Osaka&first_name=FIRST&last_name=LAST"
-```
-
-### 3. Delete a single student (GET /delete_student)
-You can delete a single student by calling /delete_student.\
-Please access /delete_student with parameters as follows:
-```bash
-curl "localhost:443/delete_student?id=4&university=Osaka"
-```
-
-### 4. Get all student list (GET /get_student_list)
-You can get all student list by calling /get_student_list.\
-Please access /get_student_list.
-```bash
-curl "localhost:443/get_student_list"
-```
+### db/setup_file/[Peer name]/basetable_list.txt の編集
+本ファイルに, 各ピアで定義されているベーステーブルを記述してください．  
+一行につき 1 テーブル記述してください．
+## How to execute a transaction
+トランザクションを実行する際は，SELECT 文には必ず `FOR SHARE` キーワードを付けてください．
+これにより Dejima システム全体に渡って直列化可能なトランザクションの実行が可能となります．
+## Restrictions
+- ユーザは Dejima テーブルを直接更新できません．必ずベーステーブルに対する更新のみにしてください．
+- PostgreSQL に接続する際のユーザ名は 'dejima' 以外を使用してください．('dejima' はプロキシサーバによる接続を区別するために使用されています)
