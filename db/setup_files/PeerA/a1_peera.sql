@@ -191,7 +191,7 @@ FROM __temp__Δ_del_bt_for_a1 AS __temp__Δ_del_bt_for_a1_a4_0  ) AS p_0_a4_0  )
                 ELSE
                     CREATE TEMPORARY TABLE IF NOT EXISTS dejima_abort_flag ON COMMIT DROP AS (SELECT true as finish);
                     -- RAISE LOG 'result from running the sh script: %', result;
-                    RAISE check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
+                    RAISE LOG check_violation USING MESSAGE = 'update on view is rejected by the external tool, result from running the sh script: ' 
                     || result;
                 END IF;
             ELSE 
