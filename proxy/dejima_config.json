@@ -1,16 +1,16 @@
 {
     "dejima_table": {
-        "dejima_a_b": ["PeerA", "PeerB"],
-        "dejima_b_c": ["PeerB", "PeerC"]
+        "a1": ["PeerA", "Mediator"],
+        "a2": ["PeerB", "Mediator"]
     },
     "base_table": {
         "PeerA": ["bt"],
         "PeerB": ["bt"],
-        "PeerC": ["bt"]
+        "Mediator": ["bt"]
     },
     "peer_address": {
         "PeerA": "PeerA-proxy:8000",
         "PeerB": "PeerB-proxy:8000",
-        "PeerC": "PeerC-proxy:8000"
+        "Mediator": "Mediator-proxy:8000"
     }
 }

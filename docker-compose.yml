@@ -66,9 +66,9 @@ services:
         dejima_net:
             ipv4_address: 172.30.0.7
 
-  peerc-db:
+  mediator-db:
     image: ekayim/dejima-nonvpg
-    container_name: PeerC-db
+    container_name: Mediator-db
     ports:
         - 54323:5432
     volumes:
@@ -76,25 +76,25 @@ services:
         - ./db/initialize.sh:/docker-entrypoint-initdb.d/initialize.sh
         - ./db/setup_files:/etc/setup_files
     environment:
-        - PEER_NAME=PeerC 
-        - DEJIMA_EXECUTION_ENDPOINT=PeerC-proxy:8000/execute
-        - DEJIMA_TERMINATION_ENDPOINT=PeerC-proxy:8000/terminate
+        - PEER_NAME=Mediator 
+        - DEJIMA_EXECUTION_ENDPOINT=Mediator-proxy:8000/execute
+        - DEJIMA_TERMINATION_ENDPOINT=Mediator-proxy:8000/terminate
     networks:
         dejima_net:
             ipv4_address: 172.30.0.9
 
-  peerc-proxy:
+  mediator-proxy:
     image: ekayim/dejima-proxy:latest
-    container_name: PeerC-proxy
+    container_name: Mediator-proxy
     command: gunicorn -b 0.0.0.0:8000 --threads 3 server:app
     volumes:
         - ./proxy:/code
     ports:
         - 8003:8000
     depends_on:
-        - peerc-db
+        - mediator-db
     environment: 
-        - PEER_NAME=PeerC 
+        - PEER_NAME=Mediator 
     networks:
         dejima_net:
             ipv4_address: 172.30.0.10

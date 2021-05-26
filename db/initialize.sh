@@ -18,5 +18,4 @@ psql -f $common_files_dir/00_terminate.sql
 while read basetable
 do
   sed "s/{}/$basetable/g" $common_files_dir/01_terminate_trigger.sql | psql
-  echo "CREATE TABLE ${basetable}_lineage (ID int primary key, LINEAGE varchar(80));" | psql
 done < $setup_files_dir/basetable_list.txt
