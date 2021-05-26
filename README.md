@@ -1,12 +1,13 @@
 # Dejima Prototype
 ## How to run
 本プログラムは docker によって DB (PostgreSQL) コンテナと，Dejima に関する処理を制御するプロキシサーバコンテナを各ピアごとに立てることによって実現しています．  
-したがって，本 README の How to build a new application にしたがって適切な設定を行ったのち，`docker-compose up` コマンドによって起動できます．
+したがって，本 README の How to build a new application にしたがって適切な設定を行ったのち，`docker-compose up` コマンドによって起動できます．  
 ## How to build a new application
 以下に新たなアプリケーションを再現するための設定方法を記述しています．  
 各設定するピア名や Dejima テーブル名などは必ず各手順で同一の文字列を設定してください．
+なお，指定するピア名にはアンダースコアを含めないでください．
 ### docker-compose.yml の編集
-以下の項目を適切に設定してください．詳しくは本リポジトリの docker-compose.yml を参照してください．
+以下の項目を適切に設定してください．詳しくは本リポジトリの docker-compose.yml を参考にしてください．
 #### プロキシサーバ
 - container_name : \[ピア名]-proxy (コンテナ間通信の際にアドレスとして使用します)
 - environment > PEER_NAME : ピア名
@@ -16,8 +17,8 @@
 - environment > DEJIMA_EXECUTION_ENDPOINT : \[ピア名]-proxy:8000/execution
 - environment > DEJIMA_TERMINATION_ENDPOINT : \[ピア名]-proxy:8000/terminate
 ### proxy/dejima_config.json の編集
-本ファイルは各ピアが，以下の情報を把握するためのコンフィグファイルです．  
-本リポジトリの proxy/dejima_config.json にしたがって，適切に設定してください．
+本ファイルは各ピアが，以下の情報を把握するためのコンフィグファイルです．
+本リポジトリの proxy/dejima_config.json を参照して，適切に設定してください．
 - 自身が参加している Dejima グループの Dejima テーブル
 - 自身が保持しているベーステーブル
 - 各ピアのプロキシサーバのアドレス
@@ -29,3 +30,11 @@ db/setup_files/\[ピア名] 以下に，ベーステーブルの定義などに�
 
 ### BIRDS によって生成したトリガ生成用 SQL ファイルの配置
 Dejima テーブルを定義するための BIRDS によって生成した SQL ファイルを，db/setup_files/\[ピア名] 以下に配置してください．
+
+## How to execute a transaction
+トランザクションを実行する際は，SELECT 文には必ず `FOR SHARE` キーワードを付けてください．
+これにより Dejima システム全体に渡って直列化可能なトランザクションの実行が可能となります．
+## Restrictions
+- ユーザは Dejima テーブルを直接更新できません．必ずベーステーブルに対する更新のみにしてください．
+- JOIN や UNION など，複数のベーステーブルから導出される Dejima テーブルを定義している場合，更新伝搬自体は正しく動作しますが，大域的な直列化可能スケジュールが得られない可能性があります．
+- PostgreSQL に接続する際のユーザ名は 'dejima' 以外を使用してください．('dejima' はプロキシサーバによる接続を区別するために使用されています)
