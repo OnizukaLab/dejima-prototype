@@ -1,7 +1,7 @@
 
 /*view definition (get):
 a2(DEJIMA_ID, VID, LOCATION, RID) :- p_0(DEJIMA_ID, VID, LOCATION, RID).
-p_0(DEJIMA_ID, VID, LOCATION, RID) :- COL4 = 'C' , bt(DEJIMA_ID, VID, LOCATION, RID, COL4).
+p_0(DEJIMA_ID, VID, LOCATION, RID) :- COL4 = 'B' , bt(DEJIMA_ID, VID, LOCATION, RID, COL4).
 */
 
 CREATE OR REPLACE VIEW public.a2 AS 
@@ -10,7 +10,7 @@ FROM (SELECT a2_a4_0.COL0 AS COL0, a2_a4_0.COL1 AS COL1, a2_a4_0.COL2 AS COL2, a
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
 FROM (SELECT bt_a5_0.DEJIMA_ID AS COL0, bt_a5_0.VID AS COL1, bt_a5_0.LOCATION AS COL2, bt_a5_0.RID AS COL3 
 FROM public.bt AS bt_a5_0 
-WHERE bt_a5_0.PROVIDER = 'C' ) AS p_0_a4_0  ) AS a2_a4_0  ) AS __dummy__;
+WHERE bt_a5_0.PROVIDER = 'B' ) AS p_0_a4_0  ) AS a2_a4_0  ) AS __dummy__;
 
 CREATE EXTENSION IF NOT EXISTS plsh;
 
@@ -168,10 +168,10 @@ FROM (SELECT ∂_ins_a2_a4_0.COL0 AS COL0, ∂_ins_a2_a4_0.COL1 AS COL1, ∂_ins
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
 FROM (SELECT __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__Δ_ins_bt_for_a2_a5_0.VID AS COL1, __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_ins_bt_for_a2_a5_0.RID AS COL3 
 FROM __temp__Δ_ins_bt_for_a2 AS __temp__Δ_ins_bt_for_a2_a5_0 
-WHERE __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER = 'C' AND NOT EXISTS ( SELECT * 
+WHERE __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER = 'B' AND NOT EXISTS ( SELECT * 
 FROM (SELECT __temp__bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__bt_for_a2_a5_0.LOCATION AS COL1, __temp__bt_for_a2_a5_0.RID AS COL2, __temp__bt_for_a2_a5_0.VID AS COL3 
 FROM __temp__bt_for_a2 AS __temp__bt_for_a2_a5_0 
-WHERE __temp__bt_for_a2_a5_0.PROVIDER = 'C' ) AS p_1_a4 
+WHERE __temp__bt_for_a2_a5_0.PROVIDER = 'B' ) AS p_1_a4 
 WHERE p_1_a4.COL3 = __temp__Δ_ins_bt_for_a2_a5_0.VID AND p_1_a4.COL2 = __temp__Δ_ins_bt_for_a2_a5_0.RID AND p_1_a4.COL1 = __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AND p_1_a4.COL0 = __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_0_a4_0  ) AS ∂_ins_a2_a4_0  ) AS __dummy__) as t);
         IF insertion_data IS NOT DISTINCT FROM NULL THEN 
             insertion_data := '[]';
@@ -181,7 +181,7 @@ FROM (SELECT ∂_del_a2_a4_0.COL0 AS COL0, ∂_del_a2_a4_0.COL1 AS COL1, ∂_del
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
 FROM (SELECT __temp__Δ_del_bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__Δ_del_bt_for_a2_a5_0.VID AS COL1, __temp__Δ_del_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_del_bt_for_a2_a5_0.RID AS COL3 
 FROM __temp__Δ_del_bt_for_a2 AS __temp__Δ_del_bt_for_a2_a5_0 
-WHERE __temp__Δ_del_bt_for_a2_a5_0.PROVIDER = 'C' AND NOT EXISTS ( SELECT * 
+WHERE __temp__Δ_del_bt_for_a2_a5_0.PROVIDER = 'B' AND NOT EXISTS ( SELECT * 
 FROM (SELECT p_2_a5_0.COL1 AS COL0, p_2_a5_0.COL2 AS COL1, p_2_a5_0.COL3 AS COL2, p_2_a5_0.COL4 AS COL3 
 FROM (SELECT __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER AS COL0, __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID AS COL1, __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_ins_bt_for_a2_a5_0.RID AS COL3, __temp__Δ_ins_bt_for_a2_a5_0.VID AS COL4 
 FROM __temp__Δ_ins_bt_for_a2 AS __temp__Δ_ins_bt_for_a2_a5_0   UNION SELECT __temp__bt_for_a2_a5_0.PROVIDER AS COL0, __temp__bt_for_a2_a5_0.DEJIMA_ID AS COL1, __temp__bt_for_a2_a5_0.LOCATION AS COL2, __temp__bt_for_a2_a5_0.RID AS COL3, __temp__bt_for_a2_a5_0.VID AS COL4 
@@ -189,7 +189,7 @@ FROM __temp__bt_for_a2 AS __temp__bt_for_a2_a5_0
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_bt_for_a2 AS __temp__Δ_del_bt_for_a2_a5 
 WHERE __temp__Δ_del_bt_for_a2_a5.PROVIDER = __temp__bt_for_a2_a5_0.PROVIDER AND __temp__Δ_del_bt_for_a2_a5.RID = __temp__bt_for_a2_a5_0.RID AND __temp__Δ_del_bt_for_a2_a5.LOCATION = __temp__bt_for_a2_a5_0.LOCATION AND __temp__Δ_del_bt_for_a2_a5.VID = __temp__bt_for_a2_a5_0.VID AND __temp__Δ_del_bt_for_a2_a5.DEJIMA_ID = __temp__bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_2_a5_0 
-WHERE p_2_a5_0.COL0 = 'C' ) AS p_1_a4 
+WHERE p_2_a5_0.COL0 = 'B' ) AS p_1_a4 
 WHERE p_1_a4.COL3 = __temp__Δ_del_bt_for_a2_a5_0.VID AND p_1_a4.COL2 = __temp__Δ_del_bt_for_a2_a5_0.RID AND p_1_a4.COL1 = __temp__Δ_del_bt_for_a2_a5_0.LOCATION AND p_1_a4.COL0 = __temp__Δ_del_bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_0_a4_0  ) AS ∂_del_a2_a4_0  ) AS __dummy__) as t);
         IF deletion_data IS NOT DISTINCT FROM NULL THEN 
             deletion_data := '[]';
@@ -221,7 +221,7 @@ FROM (SELECT ∂_del_a2_a4_0.COL0 AS COL0, ∂_del_a2_a4_0.COL1 AS COL1, ∂_del
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
 FROM (SELECT __temp__Δ_del_bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__Δ_del_bt_for_a2_a5_0.VID AS COL1, __temp__Δ_del_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_del_bt_for_a2_a5_0.RID AS COL3 
 FROM __temp__Δ_del_bt_for_a2 AS __temp__Δ_del_bt_for_a2_a5_0 
-WHERE __temp__Δ_del_bt_for_a2_a5_0.PROVIDER = 'C' AND NOT EXISTS ( SELECT * 
+WHERE __temp__Δ_del_bt_for_a2_a5_0.PROVIDER = 'B' AND NOT EXISTS ( SELECT * 
 FROM (SELECT p_2_a5_0.COL1 AS COL0, p_2_a5_0.COL2 AS COL1, p_2_a5_0.COL3 AS COL2, p_2_a5_0.COL4 AS COL3 
 FROM (SELECT __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER AS COL0, __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID AS COL1, __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_ins_bt_for_a2_a5_0.RID AS COL3, __temp__Δ_ins_bt_for_a2_a5_0.VID AS COL4 
 FROM __temp__Δ_ins_bt_for_a2 AS __temp__Δ_ins_bt_for_a2_a5_0   UNION SELECT __temp__bt_for_a2_a5_0.PROVIDER AS COL0, __temp__bt_for_a2_a5_0.DEJIMA_ID AS COL1, __temp__bt_for_a2_a5_0.LOCATION AS COL2, __temp__bt_for_a2_a5_0.RID AS COL3, __temp__bt_for_a2_a5_0.VID AS COL4 
@@ -229,7 +229,7 @@ FROM __temp__bt_for_a2 AS __temp__bt_for_a2_a5_0
 WHERE NOT EXISTS ( SELECT * 
 FROM __temp__Δ_del_bt_for_a2 AS __temp__Δ_del_bt_for_a2_a5 
 WHERE __temp__Δ_del_bt_for_a2_a5.PROVIDER = __temp__bt_for_a2_a5_0.PROVIDER AND __temp__Δ_del_bt_for_a2_a5.RID = __temp__bt_for_a2_a5_0.RID AND __temp__Δ_del_bt_for_a2_a5.LOCATION = __temp__bt_for_a2_a5_0.LOCATION AND __temp__Δ_del_bt_for_a2_a5.VID = __temp__bt_for_a2_a5_0.VID AND __temp__Δ_del_bt_for_a2_a5.DEJIMA_ID = __temp__bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_2_a5_0 
-WHERE p_2_a5_0.COL0 = 'C' ) AS p_1_a4 
+WHERE p_2_a5_0.COL0 = 'B' ) AS p_1_a4 
 WHERE p_1_a4.COL3 = __temp__Δ_del_bt_for_a2_a5_0.VID AND p_1_a4.COL2 = __temp__Δ_del_bt_for_a2_a5_0.RID AND p_1_a4.COL1 = __temp__Δ_del_bt_for_a2_a5_0.LOCATION AND p_1_a4.COL0 = __temp__Δ_del_bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_0_a4_0  ) AS ∂_del_a2_a4_0  ) AS __dummy__;
 
                 DELETE FROM public.__dummy__a2_detected_insertions;
@@ -239,10 +239,10 @@ FROM (SELECT ∂_ins_a2_a4_0.COL0 AS COL0, ∂_ins_a2_a4_0.COL1 AS COL1, ∂_ins
 FROM (SELECT p_0_a4_0.COL0 AS COL0, p_0_a4_0.COL1 AS COL1, p_0_a4_0.COL2 AS COL2, p_0_a4_0.COL3 AS COL3 
 FROM (SELECT __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__Δ_ins_bt_for_a2_a5_0.VID AS COL1, __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AS COL2, __temp__Δ_ins_bt_for_a2_a5_0.RID AS COL3 
 FROM __temp__Δ_ins_bt_for_a2 AS __temp__Δ_ins_bt_for_a2_a5_0 
-WHERE __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER = 'C' AND NOT EXISTS ( SELECT * 
+WHERE __temp__Δ_ins_bt_for_a2_a5_0.PROVIDER = 'B' AND NOT EXISTS ( SELECT * 
 FROM (SELECT __temp__bt_for_a2_a5_0.DEJIMA_ID AS COL0, __temp__bt_for_a2_a5_0.LOCATION AS COL1, __temp__bt_for_a2_a5_0.RID AS COL2, __temp__bt_for_a2_a5_0.VID AS COL3 
 FROM __temp__bt_for_a2 AS __temp__bt_for_a2_a5_0 
-WHERE __temp__bt_for_a2_a5_0.PROVIDER = 'C' ) AS p_1_a4 
+WHERE __temp__bt_for_a2_a5_0.PROVIDER = 'B' ) AS p_1_a4 
 WHERE p_1_a4.COL3 = __temp__Δ_ins_bt_for_a2_a5_0.VID AND p_1_a4.COL2 = __temp__Δ_ins_bt_for_a2_a5_0.RID AND p_1_a4.COL1 = __temp__Δ_ins_bt_for_a2_a5_0.LOCATION AND p_1_a4.COL0 = __temp__Δ_ins_bt_for_a2_a5_0.DEJIMA_ID ) ) AS p_0_a4_0  ) AS ∂_ins_a2_a4_0  ) AS __dummy__;
             END IF;
         END IF;
@@ -313,7 +313,7 @@ temprecΔ_ins_bt public.bt%ROWTYPE;
             FROM (SELECT Δ_del_bt_a5_0.COL0 AS COL0, Δ_del_bt_a5_0.COL1 AS COL1, Δ_del_bt_a5_0.COL2 AS COL2, Δ_del_bt_a5_0.COL3 AS COL3, Δ_del_bt_a5_0.COL4 AS COL4 
 FROM (SELECT bt_a5_0.DEJIMA_ID AS COL0, bt_a5_0.VID AS COL1, bt_a5_0.LOCATION AS COL2, bt_a5_0.RID AS COL3, bt_a5_0.PROVIDER AS COL4 
 FROM public.bt AS bt_a5_0 
-WHERE bt_a5_0.PROVIDER = 'C' AND NOT EXISTS ( SELECT * 
+WHERE bt_a5_0.PROVIDER = 'B' AND NOT EXISTS ( SELECT * 
 FROM (SELECT a2_a4_0.DEJIMA_ID AS COL0, a2_a4_0.VID AS COL1, a2_a4_0.LOCATION AS COL2, a2_a4_0.RID AS COL3 
 FROM public.a2 AS a2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
@@ -324,7 +324,7 @@ WHERE new_a2_a4.COL3 = bt_a5_0.RID AND new_a2_a4.COL2 = bt_a5_0.LOCATION AND new
 
 CREATE TEMPORARY TABLE Δ_ins_bt WITH OIDS ON COMMIT DROP AS SELECT (ROW(COL0,COL1,COL2,COL3,COL4) :: public.bt).* 
             FROM (SELECT Δ_ins_bt_a5_0.COL0 AS COL0, Δ_ins_bt_a5_0.COL1 AS COL1, Δ_ins_bt_a5_0.COL2 AS COL2, Δ_ins_bt_a5_0.COL3 AS COL3, Δ_ins_bt_a5_0.COL4 AS COL4 
-FROM (SELECT new_a2_a4_0.COL0 AS COL0, new_a2_a4_0.COL1 AS COL1, new_a2_a4_0.COL2 AS COL2, new_a2_a4_0.COL3 AS COL3, 'C' AS COL4 
+FROM (SELECT new_a2_a4_0.COL0 AS COL0, new_a2_a4_0.COL1 AS COL1, new_a2_a4_0.COL2 AS COL2, new_a2_a4_0.COL3 AS COL3, 'B' AS COL4 
 FROM (SELECT a2_a4_0.DEJIMA_ID AS COL0, a2_a4_0.VID AS COL1, a2_a4_0.LOCATION AS COL2, a2_a4_0.RID AS COL3 
 FROM public.a2 AS a2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
@@ -333,7 +333,7 @@ WHERE __temp__Δ_del_a2_a4.RID = a2_a4_0.RID AND __temp__Δ_del_a2_a4.LOCATION =
 FROM __temp__Δ_ins_a2 AS __temp__Δ_ins_a2_a4_0  ) AS new_a2_a4_0 
 WHERE NOT EXISTS ( SELECT * 
 FROM public.bt AS bt_a5 
-WHERE bt_a5.PROVIDER = 'C' AND bt_a5.RID = new_a2_a4_0.COL3 AND bt_a5.LOCATION = new_a2_a4_0.COL2 AND bt_a5.VID = new_a2_a4_0.COL1 AND bt_a5.DEJIMA_ID = new_a2_a4_0.COL0 ) ) AS Δ_ins_bt_a5_0  ) AS Δ_ins_bt_extra_alia 
+WHERE bt_a5.PROVIDER = 'B' AND bt_a5.RID = new_a2_a4_0.COL3 AND bt_a5.LOCATION = new_a2_a4_0.COL2 AND bt_a5.VID = new_a2_a4_0.COL1 AND bt_a5.DEJIMA_ID = new_a2_a4_0.COL0 ) ) AS Δ_ins_bt_a5_0  ) AS Δ_ins_bt_extra_alia 
             EXCEPT 
             SELECT * FROM  public.bt; 
 
