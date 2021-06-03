@@ -1,0 +1,6 @@
+source bt('DEJIMA_ID':int, 'VID':int,  'LOCATION':string, 'RID':int, 'SHARABLE':string).
+view a2('DEJIMA_ID':int, 'VID':int, 'LOCATION':string, 'RID':int).
+
+%update strategies
+-bt(ID,VID,L,RID,S) :- bt(ID,VID,L,RID,S), NOT a2(ID,VID,L,RID), S = 'True'.
++bt(ID,VID,L,RID,S) :- NOT bt(ID,VID,L,RID,S), a2(ID,VID,L,RID), S = 'True'.
