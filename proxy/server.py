@@ -3,7 +3,7 @@ import sys
 import config
 sys.dont_write_bytecode = True
 
-app = falcon.API()
+app = falcon.App()
 
 from two_pl.execution import Execution
 from two_pl.propagation import Propagation

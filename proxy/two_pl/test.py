@@ -14,10 +14,9 @@ class Test(object):
             params = json.loads(body)
 
         msg = {"result": "Ack"}
-        #resp.body = json.dumps(msg)
-        resp.body = "true"
+        resp.text = "true"
         return
     
     def on_get(self, req, resp):
-        resp.body = "Ack"
+        resp.text = "Ack"
         return

@@ -17,7 +17,7 @@ class Propagation(object):
 
         db_conn = config.connection_pool.getconn(key=current_xid)
         if current_xid in config.tx_management_dict.keys():
-            resp.body = json.dumps({"result": "Nak"})
+            resp.text = json.dumps({"result": "Nak"})
             config.connection_pool.putconn(db_conn, key=current_xid, close=True)
             return
         config.tx_management_dict[current_xid] = {'child_peer_list': []}
@@ -32,7 +32,7 @@ class Propagation(object):
                 cur.execute("SELECT {}_propagate_updates()".format(dt))
             except Exception as e:
                 print("DB ERROR: ", e)
-                resp.body = json.dumps({"result": "Nak"})
+                resp.text = json.dumps({"result": "Nak"})
                 return
 
             dt_list.remove(dt)
@@ -54,5 +54,5 @@ class Propagation(object):
                             msg = {"result": "Nak"}
                             break
 
-        resp.body = json.dumps(msg)
+        resp.text = json.dumps(msg)
         return

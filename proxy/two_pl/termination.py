@@ -43,6 +43,6 @@ class Termination(object):
             else:
                 dejimautils.termination_request(target_list, "abort", current_xid, config.dejima_config_dict) 
 
-        resp.body = json.dumps(msg)
+        resp.text = json.dumps(msg)
         print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " termination finished")
         return

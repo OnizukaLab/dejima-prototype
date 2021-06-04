@@ -26,8 +26,8 @@ class Execution(object):
         result = dejimautils.prop_request(target_peers, updated_dt, delta, current_xid, config.peer_name, config.dejima_config_dict)
         
         if result == "Ack":
-            resp.body = "true"
+            resp.text = "true"
         else:
-            resp.body = "false"
+            resp.text = "false"
         print(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))), " execution finished")
         return
