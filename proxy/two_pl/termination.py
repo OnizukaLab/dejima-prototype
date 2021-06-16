@@ -28,7 +28,7 @@ class Termination(object):
             else:
                 db_conn.rollback()
                 msg = {"result": "Nak"}
-            config.connection_pool.putconn(db_conn, key=current_xid, close=True)
+            config.connection_pool.putconn(db_conn, key=current_xid)
 
         target_tx_keys = [key for key in config.tx_management_dict.keys() if key.startswith(current_xid)]
         target_list = []
