@@ -1,53 +1,53 @@
 # Dejima Prototype
 ## How to run
-本プロトタイプは docker によって DB (PostgreSQL) コンテナと，Dejima に関する処理を制御するプロキシサーバコンテナを各ピアごとに立てることによって実現しています．  
-なお，本プロトタイプは ride-sharing alliance アプリケーションを実現するよう設定されており，本リポジトリをクローンしたのちトップディレクトリで `docker-compose up` コマンドを実行することによりコンテナが生成されます．  
-生成したのち，起動した各ピアの postgreSQL コンテナのベーステーブルに対しさまざまな更新操作を行うと，Dejima テーブルを介したデータ共有が行われます．
+This prototype uses docker and is implemented by setting up a DB (PostgreSQL) container and a proxy server container that controls Dejima-related processing for each peer.
+This prototype is set to realize a ride-sharing alliance application. A container will be created by executing `docker-compose up` command in the top directory after cloning this repository.
+After creating the container, if you perform various update operations on the base table of the postgreSQL container of each started peer, data sharing will be performed via the Dejima table.
 
-ride-sharing alliance アプリケーションではなく，別のアプリケーションを実現したい場合は，下の how to build a new application にしたがって適切な設定を行ったのち，上記と同様の手順でコンテナを立ち上げてください．
+If you want to realize an application other than the ride-sharing alliance, please set it properly according to `How to build a new application` below, and then start the container by the same procedure as above.
+
 ## How to build a new application
-新たなアプリケーションを設定するにあたり，編集・配置しなければならないファイルは以下の通りです．
+When setting up a new application, the files should be edited and set up as follows.
 - /docker-compose.yml
 - /proxy/dejima_config.json
-- /db/setup_files/\[ピア名]
-    - 初期化用 SQL ファイル
-    - BIRDS トリガ生成 SQL ファイル
+- /db/setup_files/\[peer name]
+    - SQL file for initialization
+    - SQL file for BIRDS trigger generation
     - basetable_list.txt
 
-具体的な編集内容などは後述の内容を参照してください．
-なお，各ピア名や Dejima テーブル名などは必ず各設定で同一の文字列を設定してください．  
-また，指定するピア名にはアンダースコアを含めないでください．
-### docker-compose.yml の編集
-以下の項目を適切に設定してください．詳しくは本リポジトリにある ride-sharing alliance 用の docker-compose.yml を参考にしてください．
-#### プロキシサーバ
-- container_name : \[ピア名]-proxy (コンテナ間通信の際にアドレスとして使用します)
-- environment > PEER_NAME : ピア名
+Please refer to the contents below for detailed editing.
+For each peer name or Dejima table name, be sure to use the same string in each setting.
+In addition, please do not include underscore in a peer name.
+### docker-compose.yml
+Please set up the following items properly. For details, please refer to the `docker-compose.yml`  for the ride-sharing alliance in this repository.
+#### Proxy server
+- container_name : \[peer name]-proxy (used as address for inter-container communication)
+- environment > PEER_NAME : peer name
 #### DB
-- container_name : \[ピア名]-db (コンテナ間通信の際にアドレスとして使用します)
-- environment > PEER_NAME : ピア名
-- environment > DEJIMA_EXECUTION_ENDPOINT : \[ピア名]-proxy:8000/execution
-- environment > DEJIMA_TERMINATION_ENDPOINT : \[ピア名]-proxy:8000/terminate
-### proxy/dejima_config.json の編集
-本ファイルは各ピアが，以下の情報を把握するためのコンフィグファイルです．
-本リポジトリの proxy/dejima_config.json を参照して，適切に設定してください．
-- 自身が参加している Dejima グループの Dejima テーブル
-- 自身が保持しているベーステーブル
-- 各ピアのプロキシサーバのアドレス
+- container_name : \[peer name]-db (used as address for inter-container communication)
+- environment > PEER_NAME : peer name
+- environment > DEJIMA_EXECUTION_ENDPOINT : \[peer name]-proxy:8000/execution
+- environment > DEJIMA_TERMINATION_ENDPOINT : \[peer name]-proxy:8000/terminate
+### proxy/dejima_config.json
+This is the configuration file in each peer for the following information. Please refer to the `proxy/dejima_config.json` in this repository and set it properly.
+- The Dejima tables of the Dejima groups in which this peer participates
+- The base tables of this peer
+- The address of proxy server for each peer
 
-### ベーステーブルの定義等に関する SQL ファイルの配置
-db/setup_files/\[ピア名] 以下に，ベーステーブルの定義などに関する SQL ファイルを配置してください．
-本ディレクトリにある SQL ファイルは各 DB の起動時に一度だけ呼び出されます．
-アルファベット順に呼び出される点に注意してください．
+### SQL files for base table definition, etc.
+Please place the SQL files for the definition of base tables under `db/setup_files/[peer name]`.
+The SQL files in this directory are processed only once when each DB is started. 
+Note that they are processed in alphabetical order.
 
-### BIRDS によるトリガ生成 SQL ファイルの生成
-Dejima テーブルを更新可能とするためのトリガー群を生成するには，BIRDS を利用してください．
-新たなアプリケーションを作成するための更新戦略は自身で記述したのち，BIRDS を用いて SQL ファイルにコンパイルしてください．
-なお，BIRDS コマンド実行時に必要なオプションは以下の通りです．
-- `-f [file_path]`  
-更新戦略を記述した datalog ファイルのパスを引数として与えてください．
-- `--dejiima`   
-- `-b [file_path]`   
-このオプションについては，以下の通りのシェルスクリプトファイルを用意したのち，このパスを引数として与えてください．
+### Generating SQL files for BIRDS trigger generation 
+Please use BIRDS to generate a set of triggers to make the Dejima table updatable.
+Please write your own update strategy to create a new application, and then compile it into a SQL file using BIRDS.
+The options required when executing the BIRDS command are as follows.
+- `-f [file_path]`
+Please give the path of the datalog file that describes the update strategy as an argument.
+- `--dejiima`
+- `-b [file_path]`
+For this option, prepare the following shell script file, and then give its path as an argument.
 
 ```sh
 #!/bin/sh
@@ -60,16 +60,15 @@ else
 fi
 ```
 
-### BIRDS によって生成したトリガ生成用 SQL ファイルの配置
-設定したいピア用に db/setup_files/\[ピア名] ディレクトリを作成し，Dejima テーブルを定義するための BIRDS によって生成した SQL ファイルをこのディレクトリに配置してください．
-なお，db/setup_files/common は全ピアに共通して実行するべき SQL が配置されていますので，削除しないよう注意してください．
+### SQL file configuration for triggers generated by BIRDS
+Create a `db/setup_files/[peer name]` directory for the peer you want to configure, and place the SQL file generated by BIRDS to define the Dejima table in this directory. 
+Note that `db/setup_files/common` contains the SQL files that should be executed in common to all peers. So please be careful and do not delete it.
 
-### db/setup_file/[Peer name]/basetable_list.txt の編集
-本ファイルに, 各ピアで定義されているベーステーブルを記述してください．  
-一行につき 1 テーブル記述してください．
+### db/setup_file/[peer name]/basetable_list.txt
+Describe the base table defined in each peer in this file.
+Write one table per row.
 ## How to execute a transaction
-トランザクションを実行する際は，SELECT 文には必ず `FOR SHARE` キーワードを付けてください．
-これにより Dejima システム全体に渡って直列化可能なトランザクションの実行が可能となります．
+When executing a transaction, be sure to add the `FOR SHARE` keyword to the SELECT statements. This allows the execution of serializable transactions throughout the Dejima system.
 ## Restrictions
-- ユーザは Dejima テーブルを直接更新できません．必ずベーステーブルに対する更新のみにしてください．
-- PostgreSQL に接続する際のユーザ名は 'dejima' 以外を使用してください．('dejima' はプロキシサーバによる接続を区別するために使用されています)
+- Users cannot update the Dejima table directly. Be sure to update only the base table.
+- Please use a user name other than 'dejima' when connecting to PostgreSQL (because 'dejima' is used to distinguish connections by proxy servers).
